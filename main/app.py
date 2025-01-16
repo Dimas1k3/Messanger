@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
 conn = sqlite3.connect('messanger.db')
-cursor = conn.cursor()
+cursor = conn.cursor() 
 
 cursor.execute("PRAGMA foreign_keys = ON")
 

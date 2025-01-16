@@ -40,24 +40,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    verifyCodeBtn.addEventListener("click", function (e) {
+    function handleVerifyCode(e) {
         e.preventDefault();
-
+    
         const email = document.getElementById("email").value.trim();
         const verificationCode = document.getElementById("verificationCode").value.trim();
-
+    
         const emailGroup = document.querySelector('label[for="email"]');
         const verificationCodeGroup = document.querySelector('label[for="verificationCode"]');
-        const codeEmailContainer = document.getElementById("code-email-container")
-        const passwordContainer = document.getElementById("password-container")
-
-        const sendVerifyCodeBtns = document.getElementById("send-verify-codeBtns")
-        const sendVerifyPassBtn = document.getElementById("send-verify-passwordBtn")
-        const confirmNewPassBtn = document.getElementById("confirmPassBtn")
-
+        const codeEmailContainer = document.getElementById("code-email-container");
+        const passwordContainer = document.getElementById("password-container");
+    
+        const sendVerifyCodeBtns = document.getElementById("send-verify-codeBtns");
+        const sendVerifyPassBtn = document.getElementById("send-verify-passwordBtn");
+        const confirmNewPassBtn = document.getElementById("confirmPassBtn");
+        const newPassword = document.getElementById("newPassword")
+    
         clearError(emailGroup);
         clearError(verificationCodeGroup);
-
+    
         fetch("/resetPass", {
             method: "POST",
             headers: {
@@ -80,22 +81,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     passwordContainer.style.display = 'block';
                     sendVerifyCodeBtns.style.display = 'none';
                     sendVerifyPassBtn.style.display = 'block';
-                    
-                    confirmNewPassBtn.addEventListener("click", function (e) {
-                        e.preventDefault();
-
-                        const newPassGroup = document.querySelector('label[for="newPassword"]');
-                        const conNewPassGroup = document.querySelector('label[for="confirmNewPassword"]');
-
-                        const newPass = document.getElementById("newPassword").value.trim();
-                        const confirmNewPass = document.getElementById("confirmNewPassword").value.trim();
-
-                        clearError(newPassGroup);
-                        clearError(conNewPassGroup);
-                        
-                        console.info(newPass)
-                        console.info(confirmNewPass)
-                        confirmNewPassword(email, newPass, confirmNewPass, newPassGroup, conNewPassGroup);
+                    newPassword.focus()
+    
+                    confirmNewPassBtn.addEventListener("click", handleConfirmNewPassword);
+                    confirmNewPassBtn.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") {
+                            handleConfirmNewPassword(e);
+                        }
                     });
                 }
             })
@@ -111,10 +103,34 @@ document.addEventListener("DOMContentLoaded", function () {
                     } else if (errorMessage === "Неверный код") {
                         showError(verificationCodeGroup, errorMessage);
                     } else if (errorMessage === "Время кода истекло") {
-                        showError(verificationCodeGroup, errorMessage)
+                        showError(verificationCodeGroup, errorMessage);
                     }
                 }
             });
+    }
+    
+    function handleConfirmNewPassword(e) {
+        e.preventDefault();
+    
+        const newPassGroup = document.querySelector('label[for="newPassword"]');
+        const conNewPassGroup = document.querySelector('label[for="confirmNewPassword"]');
+    
+        const newPass = document.getElementById("newPassword").value.trim();
+        const confirmNewPass = document.getElementById("confirmNewPassword").value.trim();
+    
+        clearError(newPassGroup);
+        clearError(conNewPassGroup);
+    
+        console.info(newPass);
+        console.info(confirmNewPass);
+        confirmNewPassword(email, newPass, confirmNewPass, newPassGroup, conNewPassGroup);
+    }
+    
+    verifyCodeBtn.addEventListener("click", handleVerifyCode);
+    verifyCodeBtn.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            handleVerifyCode(e);
+        }
     });
 
     function showError(group, message) {
