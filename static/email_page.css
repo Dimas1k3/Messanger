@@ -1,0 +1,100 @@
+#emailPage {
+    width: 300px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+#emailPage .welcome-heading {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+#emailPage .form-group {
+    margin-top: 18px;
+    margin-bottom: 5px;
+}
+
+#emailPage .input-field {
+    width: 100%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box; 
+    margin: 0; 
+}
+
+#emailPage .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+#emailPage .btn-send-code {
+    width: 100%;
+    display: block; 
+    margin: 20px auto; 
+    background-color: #f0ad4e;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#emailPage .btn-send-code:hover {
+    background-color: #ec9d2f;
+}
+
+#emailPage .btn-verify-code {
+    width: 85%;
+    display: block; 
+    margin: 5px auto; 
+    background-color: #5cb85c;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#emailPage .btn-verify-code:hover {
+    background-color: #4cae4c;
+}
+
+#emailPage .btn-log-in {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+}
+
+#emailPage .btn-log-in:hover {
+    text-decoration: underline;
+}
+
+#emailPage .form-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}

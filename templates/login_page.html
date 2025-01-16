@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="../static/main_page.css">
+    <link rel="stylesheet" href="../static/register_page.css">
+    <link rel="stylesheet" href="../static/email_page.css">
+    <link rel="stylesheet" href="../static/error_styles.css">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Главная страница -->
+    <div id="mainPage" class="form-container main-container">
+        <h2 class="welcome-heading">Дарова, чудик!</h2>
+        <div class="welcome-text">Тебе тут не рады!</div>
+        
+        <div class="form-group">
+            <label for="username" class="form-label">Имя пользователя</label>
+        </div>
+
+        <div class="form-input">
+            <input type="text" id="username" name="username" class="input-field" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password" class="form-label">Пароль</label>
+        </div>
+        <div class="form-input">
+            <input type="password" id="password" name="password" class="input-field" required>
+        </div> 
+
+        <div class="form-actions">
+            <button class="btn-forgot-password" id="ForgotPassBtn">Забыл пароль?</button>
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn btn-log-in" id="loginBtn">Войти</button>
+            <p id="errorMessage" style="color: red; display: none; margin-top: 10px;"></p>
+        </div>
+        
+        <div class="form-footer">
+            <p>У тебя еще нет аккаунта? 
+                <button class="btn btn-register" id="registerBtn">Зарегистрироваться</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Контейнер для страницы регистрации -->
+    <div id="registerPage" class="form-container register-container hidden">
+        <h2 class="create-heading">Создать учетную запись</h2>
+        
+        <div class="form-group">
+            <label for="e-mail" class="form-label">E-Mail</label>
+        </div>
+        <div class="form-input">
+            <input type="text" id="e-mail" name="e-mail" class="input-field" required>
+        </div>
+
+        <div class="form-group">
+            <label for="regusername" class="form-label">Username</label>
+        </div>
+        <div class="form-input">
+            <input type="text" id="regusername" name="regusername" class="input-field" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="regpassword" class="form-label">Пароль</label>
+        </div>
+        <div class="form-input">
+            <input type="password" id="regpassword" name="regpassword" class="input-field" required>
+        </div> 
+
+        <div class="form-group">
+            <label for="confirmpassword" class="form-label">Подтвердите пароль</label>
+        </div>
+        <div class="form-input">
+            <input type="password" id="confirmpassword" name="confirmpassword" class="input-field" required>
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn btn-reg" id="registerSubmitBtn">Зарегистрироваться</button>
+            <!-- <p id="registerErrorMessage" style="color: red; display: none;"></p> -->
+        </div>
+        
+        <div class="form-actions"> 
+            <button class="btn-login-link" id="loginLinkBtn">Уже есть аккаунт?</button>
+        </div>
+    </div>
+
+    <!-- Контейнер для страницы сброса пароля -->
+    <div id="emailPage" class="form-container email-container hidden">
+        <h2 class="welcome-heading">Сброс пароля</h2>
+    
+        <div id="code-email-container" style="display:block">
+            <div class="form-group">
+                <label for="email" class="form-label">Твоя почта</label>
+            </div>
+            <div class="form-input">
+                <input type="email" id="email" name="email" class="input-field" required>
+            </div>
+
+            <div class="form-group">
+                <label for="verificationCode" class="form-label">Код подтверждения</label>
+            </div>
+            <div class="form-input">
+                <input type="text" id="verificationCode" name="verificationCode" class="input-field" required>
+            </div>
+        </div>
+
+        <div id="password-container" style="display: none;">
+            <div class="form-group">
+                <label for="newPassword" class="form-label">Введите пароль</label>
+            </div>
+            <div class="form-input">
+                <input type="password" id="newPassword" name="newPassword" class="input-field" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="confirmNewPassword" class="form-label">Подтвердите пароль</label>
+            </div>
+            <div class="form-input">
+                <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="input-field" required>
+            </div>
+        </div>        
+
+        <div class="form-actions" id="send-verify-codeBtns" style="display:block">
+            <button class="btn btn-send-code" id="sendCodeBtn">Отправить код</button>
+            <button class="btn btn-verify-code" id="verifyCodeBtn">Подтвердить код</button>
+        </div>
+
+        <div class="form-actions" id="send-verify-passwordBtn" style="display: none;">
+            <button class="btn btn-send-code" id="confirmPassBtn">Подтвердить пароль</button>
+        </div>
+        
+        <div class="form-footer">
+            <p>Вспомнил пароль? 
+                <button class="btn btn-log-in" id="backToLoginBtn">Вернуться к входу</button>
+            </p>
+        </div>
+    </div>
+
+    <script src="../static/switch.js"></script>
+
+    <script src="../static/main.js"></script>
+
+    <script src="../static/register.js"></script>
+
+    <script src="../static/email.js"></script>
+</body>
+</html>
