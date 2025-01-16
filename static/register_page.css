@@ -1,0 +1,76 @@
+#registerPage {
+    width: 300px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+#registerPage .create-heading {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+#registerPage .form-group {
+    margin-top: 18px;
+    margin-bottom: 5px;
+}
+
+#registerPage .input-field {
+    width: 100%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box; 
+    margin: 0; 
+}
+
+#registerPage .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#registerPage .btn-reg {
+    margin-top: 20px;
+    width: 100%;
+    background-color: #f0ad4e;
+    margin-bottom: 0px;
+}
+
+#registerPage .btn-reg:hover {
+    background-color: #ec9d2f;
+}
+
+#registerPage .btn-login-link {
+    margin-top: 5px;
+    width: auto; 
+    background-color: transparent; 
+    border: none; 
+    color: #007bff; 
+    text-align: left; 
+    cursor: pointer; 
+    padding: 0; 
+}
+
+#registerPage .btn-login-link:hover {
+    text-decoration: underline; 
+}
+
+#registerPage .form-footer p {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: #555;
+}

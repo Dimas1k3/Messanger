@@ -1,0 +1,106 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 85vh;
+    margin: 0;
+    background-image: url('https://cdn.discordapp.com/attachments/549994847142936594/1324122124134252706/R2yVG.png?ex=67770053&is=6775aed3&hm=12f522bd74209ff56e5bc463bdd9960f6de3c6b8de4d5182488cb5fdbb01c9fe&');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-position: center 10%;
+}
+
+#mainPage {
+    width: 300px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+#mainPage .welcome-heading {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+#mainPage .welcome-text {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+#mainPage .form-group {
+    margin-top: 18px;
+    margin-bottom: 5px;
+}
+
+#mainPage .input-field {
+    width: 100%; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box; 
+    margin: 0; 
+}
+
+#mainPage .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#mainPage .btn-log-in:hover {
+    background-color: #ec9d2fea;
+}
+
+#mainPage .btn-log-in {
+    margin-top: 20px;
+    width: 100%;
+    background-color: #f0ad4e;
+    margin-bottom: 0px;
+}
+
+#mainPage .btn-forgot-password {
+    margin-top: 5px;
+    margin-bottom: 0px;
+    width: auto; 
+    background-color: transparent; 
+    border: none; 
+    color: #007bff; 
+    text-align: left; 
+    cursor: pointer; 
+    padding: 0; 
+}
+
+#mainPage .btn-forgot-password:hover {
+    text-decoration: underline; 
+}
+
+#mainPage .btn-register {
+    margin-top: 5px;
+    background-color: #5cb85c;
+}
+
+#mainPage .btn-register:hover {
+    background-color: #3fa53fec;
+}
+
+#mainPage .form-footer p {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: #555;
+}

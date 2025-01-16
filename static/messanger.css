@@ -1,0 +1,92 @@
+#messages-container {
+    width: 90%;
+    max-width: 800px;
+    height: 80vh; /* Одинаковая высота */
+    margin: 20px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    overflow-y: auto;
+}
+
+#userList-container {
+    position: absolute;
+    margin-top: -775px;
+    width: 220px;
+    height: 90vh;
+    right: 50px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    overflow-y: auto;
+}
+
+#input-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto; /* Центрируем блок */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
+
+#message-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-right: 10px;
+}
+
+#send-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#send-button:hover {
+    background-color: #0056b3;
+}
+
+.message {
+    display: flex;
+    flex-direction: column; 
+    gap: 5px; 
+    margin-bottom: 10px;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.nickname {
+    font-weight: bold;
+    color: orange;
+}
+
+.time {
+    font-size: 0.9em;
+    color: gray;
+}
+
+.message-text {
+    color: rgb(5, 0, 0);
+}
+
