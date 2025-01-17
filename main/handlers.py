@@ -3,8 +3,9 @@ import smtplib
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import secrets
 
-from data import banned_words, numbers, login_symbols, password_symbols
+from data import banned_words, numbers, login_symbols, password_symbols, common_weak_passwords
 from data import sender_email, sender_password, smtp_port, smtp_server
 
 def validate_username(user_login):
@@ -79,6 +80,9 @@ def validate_password(user_password):
 
     if user_password == user_password[0] * len(user_password):
         return False, "passwordGroup", "Пароль не может состоять из одного символа"
+    
+    if user_password in common_weak_passwords:
+        return False, "passwordGroup", "Пароль слишком простой"
 
     symbol_counter = 0
     for symbol in user_password:
@@ -111,3 +115,8 @@ def send_verification_code(recipient_email):
         server.sendmail(sender_email, recipient_email, msg.as_string())
     
     return code
+
+def create_token():
+    token = secrets.token_hex(32)
+
+    return token

@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const loginBtn = document.getElementById("loginBtn");
+    const mainPage = document.getElementById("mainPage");
 
     function handleLogin(e) {
         if (e) e.preventDefault();
@@ -68,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
+        if (mainPage && window.getComputedStyle(mainPage).display === "block" && e.key === "Enter") {
             handleLogin(e);
         }
     });

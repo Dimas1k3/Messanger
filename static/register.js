@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const regBtn = document.getElementById("registerSubmitBtn");
+    const registerPage = document.getElementById("registerPage");
 
     function handleRegistration(e) {
         if (e) e.preventDefault();
@@ -75,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
+        if (registerPage && window.getComputedStyle(registerPage).display === "block" && e.key === "Enter") {
             handleRegistration(e);
         }
     });

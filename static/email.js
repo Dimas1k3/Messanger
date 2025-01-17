@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     const sendCodeBtn = document.getElementById("sendCodeBtn");
     const verifyCodeBtn = document.getElementById("verifyCodeBtn");
+    const emailPage = document.getElementById("emailPage")
+    const emailContainer = document.getElementById("code-email-container")
+    const passContainer = document.getElementById("password-container")
 
     sendCodeBtn.addEventListener("click", function (e) {
         e.preventDefault();
@@ -83,10 +86,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     sendVerifyPassBtn.style.display = 'block';
                     newPassword.focus()
     
-                    confirmNewPassBtn.addEventListener("click", handleConfirmNewPassword);
-                    confirmNewPassBtn.addEventListener("keydown", function(e) {
-                        if (e.key === "Enter") {
-                            handleConfirmNewPassword(e);
+                    confirmNewPassBtn.addEventListener("click", function(e) {
+                        handleConfirmNewPassword(e, email);
+                    });
+                    
+                    document.addEventListener("keydown", function(e) {
+                        if (
+                            emailPage && window.getComputedStyle(emailPage).display === "block" &&
+                            passContainer && window.getComputedStyle(passContainer).display === "block" &&
+                            e.key === "Enter"
+                        ) {
+                            handleConfirmNewPassword(e, email); 
                         }
                     });
                 }
@@ -109,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
     
-    function handleConfirmNewPassword(e) {
+    function handleConfirmNewPassword(e, email) {
         e.preventDefault();
     
         const newPassGroup = document.querySelector('label[for="newPassword"]');
@@ -120,15 +130,20 @@ document.addEventListener("DOMContentLoaded", function () {
     
         clearError(newPassGroup);
         clearError(conNewPassGroup);
-    
-        console.info(newPass);
-        console.info(confirmNewPass);
+        
+        // console.info(email);
+        // console.info(newPass);
+        // console.info(confirmNewPass);
         confirmNewPassword(email, newPass, confirmNewPass, newPassGroup, conNewPassGroup);
     }
     
     verifyCodeBtn.addEventListener("click", handleVerifyCode);
-    verifyCodeBtn.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
+    document.addEventListener("keydown", function(e) {
+        if (
+            emailPage && window.getComputedStyle(emailPage).display === "block" &&
+            emailContainer && window.getComputedStyle(emailContainer).display === "block" &&
+            e.key === "Enter"
+        ) {
             handleVerifyCode(e);
         }
     });

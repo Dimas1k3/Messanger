@@ -1,6 +1,8 @@
 import sqlite3
 from datetime import datetime, timedelta
 
+from handlers import create_token
+
 def check_username_avaibility(username):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -98,12 +100,37 @@ def update_user_password(email, hash_pass):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     cursor.execute('''UPDATE users SET password_hash = ? WHERE email = ?''', (hash_pass, email))
     
     conn.commit()
     conn.close()
 
+def get_user_id(username):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user[0]
+
+def create_session_token(user_id):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+    
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    expires_at = (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+    token = create_token()
+    
+    cursor.execute('''
+        INSERT INTO session_tokens (user_id, token, created_at, expires_at)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, token, created_at, expires_at))
+
+    conn.commit()
+    conn.close()
+    
 def add_message_to_db():
     pass
