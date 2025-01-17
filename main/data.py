@@ -21,6 +21,15 @@ banned_words = [
     "admin1", "mod2", "root123"
 ]
 
+common_weak_passwords = [
+    "123456", "123456789", "qwerty", "password", "12345", "12345678", "111111", 
+    "123123", "abc123", "password1", "1234", "iloveyou", "qwerty123", "1q2w3e4r", 
+    "admin", "letmein", "welcome", "monkey", "football", "sunshine", "master", 
+    "000000", "login", "123321", "superman", "asdfgh", "123qwe", "zaq12wsx", 
+    "baseball", "dragon", "starwars", "hello", "whatever", "freedom", "qazwsx", 
+    "michael", "cheese", "secret", "love", "trustno1", "1234567", "abcd1234"
+]
+
 sender_email = "dimadiman208@gmail.com" 
 sender_password = "auye ytvh amnr brrv"
 

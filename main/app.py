@@ -3,8 +3,16 @@ import sqlite3
 import logging
 from datetime import datetime
 
-from handlers import validate_username, validate_password, validate_email, hash_password, send_verification_code
-from db import check_username_avaibility, check_email_avaibility, check_code, add_code_to_db, check_hash_pass, add_user_password, update_user_password
+from handlers import (
+    validate_username, validate_password, validate_email, 
+    hash_password, send_verification_code
+)
+
+from db import (
+    check_username_avaibility, check_email_avaibility, check_code, 
+    add_code_to_db, check_hash_pass, add_user_password, 
+    update_user_password, get_user_id, create_session_token
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -195,7 +203,8 @@ def login():
     if check_hash_pass(username, hash_pass) == False:
         return jsonify({"success": False, "message": "Неверный пароль"}), 400
     
-    # add session token
+    user_id = get_user_id(username)
+    create_session_token(user_id)
     return jsonify({"success": True, "message": "Вход успешен"})
     
 @app.route("/user_message", methods=["POST"])
@@ -207,6 +216,7 @@ def process_user_message():
     if not user_message:
         return jsonify({"success": False, "error": "Сообщение пустое"}), 400
     
+    # get user nickaname
     # add_message_to_db(?, user_message)
     
     return jsonify({"success": True, "message": user_message, "time": time})

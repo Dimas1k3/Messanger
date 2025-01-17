@@ -8,7 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const backToLogin = document.getElementById("backToLoginBtn")
     const username = document.getElementById("username")
     const regEMail = document.getElementById("e-mail")
+    const emailContainer = document.getElementById("code-email-container")
+    const passContainer = document.getElementById("password-container")
     const resetEMail = document.getElementById("email")
+    const resetPass = document.getElementById("newPassword")
 
     registerBtn.addEventListener("click", function () {
         mainPage.classList.add("hidden");
@@ -25,7 +28,12 @@ document.addEventListener("DOMContentLoaded", function () {
     ForgotPassBtn.addEventListener("click", function () {
         mainPage.classList.add("hidden");
         emailPage.classList.remove("hidden")
-        resetEMail.focus()
+        
+        if (emailContainer && window.getComputedStyle(emailContainer).display === "block") {
+        resetEMail.focus() }
+        
+        if (passContainer && window.getComputedStyle(passContainer).display === "block") {
+        resetPass.focus() }
     });
 
     backToLogin.addEventListener("click", function () {
