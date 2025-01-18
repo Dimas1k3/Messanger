@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(data => {
                 if (data.success) {
+                    localStorage.setItem("session_token", data.token);
+
                     window.location.replace("/main");
                 }
             })

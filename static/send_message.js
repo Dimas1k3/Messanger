@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage() {
         const user_message = message_input.value.trim();
 
+        const token = localStorage.getItem("session_token");
+
         if (!user_message) {
             return;
         }
@@ -13,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": token 
             },
             body: JSON.stringify({ message: user_message }),
         })
@@ -34,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const nicknameElement = document.createElement("span");
                 nicknameElement.className = "nickname";
-                nicknameElement.textContent = "Dimas28";
+                nicknameElement.textContent = data.nickname;
 
                 const timeElement = document.createElement("span");
                 timeElement.className = "time"; 

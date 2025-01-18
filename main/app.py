@@ -11,7 +11,8 @@ from handlers import (
 from db import (
     check_username_avaibility, check_email_avaibility, check_code, 
     add_code_to_db, check_hash_pass, add_user_password, 
-    update_user_password, get_user_id, create_session_token
+    update_user_password, get_user_id, create_session_token,
+    verify_session_token, get_user_nickname, add_message_to_db
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -204,11 +205,21 @@ def login():
         return jsonify({"success": False, "message": "Неверный пароль"}), 400
     
     user_id = get_user_id(username)
-    create_session_token(user_id)
-    return jsonify({"success": True, "message": "Вход успешен"})
+    token = create_session_token(user_id)
+    return jsonify({"success": True, "message": "Вход успешен", "token": token})
     
 @app.route("/user_message", methods=["POST"])
 def process_user_message():    
+    token = request.headers.get("Authorization")
+    
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+
+    user = verify_session_token(token)
+    if user == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+    user_id = user[1]
+
     data = request.get_json()
     user_message = data.get("message")
     time = datetime.now().strftime(("%d-%m-%Y %H:%M") )
@@ -216,10 +227,10 @@ def process_user_message():
     if not user_message:
         return jsonify({"success": False, "error": "Сообщение пустое"}), 400
     
-    # get user nickaname
-    # add_message_to_db(?, user_message)
+    nickname = get_user_nickname(user_id)
+    add_message_to_db(user_id, user_message, time)
     
-    return jsonify({"success": True, "message": user_message, "time": time})
+    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": time})
 
 if __name__ == "__main__":
     app.run(debug=True)
