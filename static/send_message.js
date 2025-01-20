@@ -2,6 +2,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const send_button = document.getElementById("send-button");
     const message_input = document.getElementById("message-input");
 
+    const dataContainer = document.getElementById("data-container");
+    const messages = JSON.parse(dataContainer.dataset.messages); 
+    console.log(messages);
+
+    function renderMessages(messages) {
+        messages.reverse().forEach(message => {
+            const [id, nickname, text, timestamp] = message;
+            const trimmedTimestamp = timestamp.slice(0, -3);
+            const messagesContainer = document.getElementById("messages-container");
+                
+            const newMessage = document.createElement("div");
+            newMessage.className = "message";
+                
+            const messageHeader = document.createElement("div");
+            messageHeader.className = "message-header";
+
+            const nicknameElement = document.createElement("span");
+            nicknameElement.className = "nickname";
+            nicknameElement.textContent = nickname;
+
+            const timeElement = document.createElement("span");
+            timeElement.className = "time"; 
+            timeElement.textContent = trimmedTimestamp;
+
+            const messageText = document.createElement("div");
+            messageText.className = "message-text";
+            messageText.textContent = text;
+                
+            newMessage.appendChild(messageHeader);
+            messageHeader.appendChild(nicknameElement);
+            messageHeader.appendChild(timeElement);
+            newMessage.appendChild(messageText);
+
+            messagesContainer.appendChild(newMessage);
+
+        });
+    }
+
+    renderMessages(messages);
+
     function sendMessage() {
         const user_message = message_input.value.trim();
 
@@ -63,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" || e.ctrlKey) {
             return;
         }
         

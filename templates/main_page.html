@@ -23,6 +23,10 @@
         <button id="send-button">Отправить</button>
     </div> 
 
+    <input type="hidden" id="current-offset" value="0">
+
+    <div id="data-container" data-messages='{{ messages|tojson|safe }}'></div>
+
     <script src="../static/send_message.js"></script>
 </body>
 </html>

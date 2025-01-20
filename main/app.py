@@ -12,7 +12,8 @@ from db import (
     check_username_avaibility, check_email_avaibility, check_code, 
     add_code_to_db, check_hash_pass, add_user_password, 
     update_user_password, get_user_id, create_session_token,
-    verify_session_token, get_user_nickname, add_message_to_db
+    verify_session_token, get_user_nickname, add_message_to_db,
+    render_messages
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -38,14 +39,24 @@ cursor.execute('''
 ''')
 
 cursor.execute('''
-    CREATE TABLE IF NOT EXISTS user_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sender_id INTEGER NOT NULL,
-        receiver_id INTEGER NOT NULL,
-        message TEXT NOT NULL,
-        sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (sender_id) REFERENCES users(id),
-        FOREIGN KEY (receiver_id) REFERENCES users(id)
+    CREATE TABLE IF NOT EXISTS global_chat (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id)
+    )
+''')
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS private_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (receiver_id) REFERENCES users(id)
     )
 ''')
 
@@ -69,7 +80,10 @@ def login_page():
 
 @app.route("/main")
 def main_page():
-    return render_template("main_page.html")
+    offset = int(request.args.get('offset', 0))
+    messages = render_messages(offset)
+
+    return render_template("main_page.html", messages=messages)
 
 @app.route("/register", methods=["GET"])
 def register_page():
@@ -222,15 +236,16 @@ def process_user_message():
 
     data = request.get_json()
     user_message = data.get("message")
-    time = datetime.now().strftime(("%d-%m-%Y %H:%M") )
+    time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
 
     if not user_message:
         return jsonify({"success": False, "error": "Сообщение пустое"}), 400
     
     nickname = get_user_nickname(user_id)
     add_message_to_db(user_id, user_message, time)
+    showTime = time[:-3] 
     
-    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": time})
+    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime})
 
 if __name__ == "__main__":
     app.run(debug=True)
