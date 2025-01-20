@@ -155,7 +155,6 @@ def get_user_nickname(user_id):
     cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
     user = cursor.fetchone()
 
-    print(user)
     conn.close()
 
     return user[1]
@@ -165,9 +164,36 @@ def add_message_to_db(user_id, user_message, time):
     cursor = conn.cursor()
 
     cursor.execute('''
-            INSERT INTO user_messages (sender_id, message, sent_at)
+            INSERT INTO global_chat (sender_id, message, sent_at)
             VALUES (?, ?, ?)
         ''', (user_id, user_message, time))
 
     conn.commit()
     conn.close()
+
+def render_messages(offset):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    query = '''
+        SELECT 
+            global_chat.id,
+            users.username,
+            global_chat.message,
+            global_chat.sent_at
+        FROM 
+            global_chat
+        JOIN 
+            users 
+        ON 
+            global_chat.sender_id = users.id
+        ORDER BY 
+            global_chat.sent_at DESC;
+    '''
+
+    cursor.execute(query)
+    messages = cursor.fetchall() 
+    conn.close()
+    print(messages)
+    return messages
+
