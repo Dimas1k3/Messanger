@@ -171,7 +171,7 @@ def add_message_to_db(user_id, user_message, time):
     conn.commit()
     conn.close()
 
-def render_messages(offset):
+def render_messages(offset, limit):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
@@ -188,12 +188,13 @@ def render_messages(offset):
         ON 
             global_chat.sender_id = users.id
         ORDER BY 
-            global_chat.sent_at DESC;
+            global_chat.sent_at DESC,
+            global_chat.id DESC
+        LIMIT ? OFFSET ?;
     '''
 
-    cursor.execute(query)
+    cursor.execute(query, (limit, offset))
     messages = cursor.fetchall() 
     conn.close()
-    print(messages)
+    
     return messages
-
