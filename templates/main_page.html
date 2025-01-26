@@ -14,9 +14,27 @@
 <body>
     <!-- <div id="server-scroller"></div> -->
     
-    <div id="messages-container"></div>
+    <div id="messages-container" style="overflow-y: scroll;">
+        <div id="message-control" style="display: none;">
+            <!-- Стрелочка -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 4.146a.5.5 0 0 1 0 .708L3.707 7H14.5a.5.5 0 0 1 0 1H3.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"/>
+            </svg>
+
+            <!-- Карандаш -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706l-13.5 13.5a.5.5 0 0 1-.168.11l-4 1a.5.5 0 0 1-.65-.65l1-4a.5.5 0 0 1 .11-.168l13.5-13.5a.5.5 0 0 1 .706 0zM13.085 3 4 12.085V13h.915L14 3.915 13.085 3z"/>
+            </svg>
+
+            <!-- Мусорка -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5v-7zm1 .5v6h1v-6H6zm3 0v6h1v-6H9z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9.5a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 3 13.5V4H2.5a1 1 0 1 1 0-2H5.707l1-1h3.586l1 1H13a1 1 0 0 1 1 1zM3 4v9.5a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5V4H3z"/>
+            </svg>
+        </div>
+    </div>
     
-    <div id="userList-container"></div>
+    <div id="userList-container" style="display: none;"></div>
     
     <div id="input-container">
         <input type="text" id="message-input" placeholder="Введите сообщение...">

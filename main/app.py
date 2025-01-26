@@ -81,9 +81,22 @@ def login_page():
 @app.route("/main")
 def main_page():
     offset = int(request.args.get('offset', 0))
-    messages = render_messages(offset)
+    # print(f"Полученный offset: {offset} в /main")
+
+    limit = 20
+    messages = render_messages(offset, limit)
 
     return render_template("main_page.html", messages=messages)
+
+@app.route('/load-messages', methods=['GET'])
+def load_messages():
+    offset = int(request.args.get('offset', 0))  
+    # print(f"Полученный offset: {offset} в /load")
+
+    limit = 20  
+    messages = render_messages(offset, limit)  
+    # print(messages)
+    return jsonify(messages)
 
 @app.route("/register", methods=["GET"])
 def register_page():
