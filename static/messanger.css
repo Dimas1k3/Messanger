@@ -25,6 +25,23 @@
     overflow-y: auto;
 }
 
+#answer-container, #edit-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    width: 90%;
+    max-width: 1000px;
+    margin: 10px auto 0; 
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9; 
+    font-size: 16px;
+    color: #333; 
+    margin-bottom: -25px;
+}
+
 #input-container {
     display: flex;
     justify-content: space-between;
@@ -105,4 +122,29 @@
     padding: 5px;
     background-color: #e0e0e0;
     /* box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);  */
+}
+
+#arrow-icon {
+    margin-left: 5px;
+    margin-top: 4px;
+}
+
+#pencil-icon {
+    margin-left: 9px;
+}
+
+#bin-icon {
+    margin-left: 9px;
+}
+
+#arrow-icon:hover {
+    color: #FFC107;
+}
+
+#pencil-icon:hover {
+    color: #2ECC71;
+}
+
+#bin-icon:hover {
+    color: #ff0000;
 }

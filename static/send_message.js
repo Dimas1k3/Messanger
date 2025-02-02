@@ -9,15 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // console.log(messages);
 
     const messageControlPanel = document.getElementById("message-control")
+    let lastHoveredMessage = null;
     
     function getMessagesDiv() {
         const messageList = messagesContainer.querySelectorAll('.message'); 
         // console.log(messageList);
     
         messageList.forEach((message, index) => {
-            console.log(`Message ${index}:`, message.innerHTML);
+            // console.log(`Message ${index}:`, message.innerHTML);
     
             message.addEventListener('mouseenter', () => {
+                lastHoveredMessage = message;
+                
                 message.style.backgroundColor = '#e0e0e0';
                 messageControlPanel.style.display = 'block';
 
@@ -46,6 +49,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function getLastHoveredMessage() {
+        return lastHoveredMessage ? lastHoveredMessage.innerHTML : null;
+    }
+
+    function getMessageId(element) {
+        return element?.closest('.message')?.getAttribute('data-message-id') || null;
+    }
+    
     function renderMessages(messages) {
         fetch(`/load-messages?offset=${currentOffset}`);
         console.log(currentOffset);
@@ -54,38 +65,52 @@ document.addEventListener("DOMContentLoaded", function () {
             const [id, nickname, text, timestamp] = message;
             const trimmedTimestamp = timestamp.slice(0, -3);
             const messagesContainer = document.getElementById("messages-container");
-                    
+        
             const newMessage = document.createElement("div");
             newMessage.className = "message";
-                
+        
             const messageHeader = document.createElement("div");
             messageHeader.className = "message-header";
-
+        
             const nicknameElement = document.createElement("span");
             nicknameElement.className = "nickname";
             nicknameElement.textContent = nickname;
-
+        
             const timeElement = document.createElement("span");
             timeElement.className = "time"; 
             timeElement.textContent = trimmedTimestamp;
-
+        
+            const fullTimeElement = document.createElement("div");
+            fullTimeElement.className = "full-time";
+            fullTimeElement.textContent = timestamp;
+            fullTimeElement.style.display = "none"; 
+        
             const messageText = document.createElement("div");
             messageText.className = "message-text";
             messageText.textContent = text;
-                
+        
+            const messageIdElement = document.createElement("div");
+            messageIdElement.className = "message-id";
+            messageIdElement.textContent = id;
+            messageIdElement.style.display = "none";
+        
             newMessage.appendChild(messageHeader);
             messageHeader.appendChild(nicknameElement);
             messageHeader.appendChild(timeElement);
+            newMessage.appendChild(fullTimeElement); 
             newMessage.appendChild(messageText);
-
+            newMessage.appendChild(messageIdElement); 
+        
             messagesContainer.appendChild(newMessage);
         });
+
         currentOffset += 20
         document.getElementById("current-offset").value = currentOffset;
     }
 
     renderMessages(messages);
     
+    lastHoveredMessage = null;
     getMessagesDiv();
 
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -116,10 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 const messagesContainer = document.getElementById("messages-container");
-                
+
                 const newMessage = document.createElement("div");
                 newMessage.className = "message";
-                
+
                 const messageHeader = document.createElement("div");
                 messageHeader.className = "message-header";
 
@@ -131,14 +156,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 timeElement.className = "time"; 
                 timeElement.textContent = data.time;
 
+                const fullTimeElement = document.createElement("div");
+                fullTimeElement.className = "full-time";
+                console.info(data.fullTime);
+                fullTimeElement.textContent = data.fullTime; 
+                fullTimeElement.style.display = "none"; 
+
                 const messageText = document.createElement("div");
                 messageText.className = "message-text";
-                messageText.textContent = user_message;
-                
+                messageText.textContent = data.message;
+
+                const messageIdElement = document.createElement("div");
+                messageIdElement.className = "message-id";
+                messageIdElement.textContent = data.messageId;
+                messageIdElement.style.display = "none";
+
                 newMessage.appendChild(messageHeader);
                 messageHeader.appendChild(nicknameElement);
                 messageHeader.appendChild(timeElement);
+                newMessage.appendChild(fullTimeElement);
                 newMessage.appendChild(messageText);
+                newMessage.appendChild(messageIdElement); 
 
                 messagesContainer.appendChild(newMessage);
 
@@ -169,30 +207,42 @@ document.addEventListener("DOMContentLoaded", function () {
                     const [id, nickname, text, timestamp] = message;
                     const trimmedTimestamp = timestamp.slice(0, -3);
                     const messagesContainer = document.getElementById("messages-container");
-    
+                
                     const newMessage = document.createElement("div");
                     newMessage.className = "message";
-    
+                
                     const messageHeader = document.createElement("div");
                     messageHeader.className = "message-header";
-    
+                
                     const nicknameElement = document.createElement("span");
                     nicknameElement.className = "nickname";
                     nicknameElement.textContent = nickname;
-    
+                
                     const timeElement = document.createElement("span");
                     timeElement.className = "time";
                     timeElement.textContent = trimmedTimestamp;
-    
+                
+                    const fullTimeElement = document.createElement("div");
+                    fullTimeElement.className = "full-time";
+                    fullTimeElement.textContent = timestamp;
+                    fullTimeElement.style.display = "none"; 
+                
                     const messageText = document.createElement("div");
                     messageText.className = "message-text";
                     messageText.textContent = text;
-    
+                
+                    const messageIdElement = document.createElement("div");
+                    messageIdElement.className = "message-id";
+                    messageIdElement.textContent = id;
+                    messageIdElement.style.display = "none";
+                
                     newMessage.appendChild(messageHeader);
                     messageHeader.appendChild(nicknameElement);
                     messageHeader.appendChild(timeElement);
+                    newMessage.appendChild(fullTimeElement);
                     newMessage.appendChild(messageText);
-    
+                    newMessage.appendChild(messageIdElement); 
+                
                     messagesContainer.prepend(newMessage);
                 });
     
@@ -216,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     messagesContainer.addEventListener("scroll", function () {
         if (messagesContainer.scrollTop === 0) { 
             loadMoreMessages(); 
+            let lastHoveredMessage = null;
             wait(300).then(() => {
                 getMessagesDiv(); 
             });
@@ -232,16 +283,343 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    send_button.addEventListener("click", function (e) {
-        e.preventDefault();
-        sendMessage();
-    });
+    // send_button.addEventListener("click", function (e) {
+    //     e.preventDefault();
+    //     const editContainer = document.getElementById("edit-container")
 
+    //     if (editContainer.style.display === "none") {
+    //         sendMessage();
+    //         let lastHoveredMessage = null;
+    //         wait(300).then(() => {
+    //             getMessagesDiv(); 
+    //         });
+    //     }
+    // });
+    
     message_input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
             e.preventDefault();
-            sendMessage();
-            message_input.blur();
+            const editContainer = document.getElementById("edit-container")
+            const answerContainer = document.getElementById("answer-container")
+    
+            if (editContainer.style.display === "none" && answerContainer.style.display === "none") {
+                sendMessage();
+                message_input.blur();
+                let lastHoveredMessage = null;
+                wait(300).then(() => {
+                    getMessagesDiv(); 
+                });
+            }
         }
     });
+    
+
+    const arrowIcon = document.getElementById("arrow-icon")
+    const pencilIcon = document.getElementById("pencil-icon")
+    const binIcon = document.getElementById("bin-icon")
+    const answerContainer = document.getElementById("answer-container")
+
+    let lastMessage = null;
+
+    arrowIcon.addEventListener("click", function (e) {
+        e.preventDefault();
+        let message = getLastHoveredMessage();
+
+        const messageInput = document.getElementById("message-input")
+        messageInput.value = "";
+
+        const editContainer = document.getElementById("edit-container");
+        editContainer.style.display = 'none';
+    
+        if (answerContainer.style.display === 'none' || lastMessage !== message) { 
+            const tempContainer = document.createElement('div');
+            tempContainer.innerHTML = message;
+    
+            const username = tempContainer.querySelector('.nickname').innerText;
+            const messageText = tempContainer.querySelector('.message-text').innerText;
+            
+            answerContainer.innerText = "Вы отвечаете на " + "'" + messageText + "'" + " от " + username + " " + "• esc для отмены";
+            answerContainer.style.display = 'block';
+    
+            lastMessage = message;
+            console.info("Выбранное сообщение изменилось:", message);
+
+            document.addEventListener("keydown", handleReply);
+        } else {
+            answerContainer.style.display = 'none';   
+            answerContainer.innerText = "Вы отвечаете на";
+            lastMessage = null; 
+        }
+    });
+
+    function handleReply(event) { 
+        let message = getLastHoveredMessage();
+
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = message; 
+        const messageToReply = tempContainer.querySelector('.message-text')?.innerText.trim();
+        const messageToReplyTime = tempContainer.querySelector('.full-time')?.innerText.trim();
+        const messageId = tempContainer.querySelector('.message-id')?.innerText.trim();
+        console.log(messageId);
+
+        const messageInput = document.getElementById("message-input")
+        const answerContainer = document.getElementById("answer-container")
+
+        if (event && event.key === "Escape") {
+            messageInput.value = "";
+            messageInput.blur();
+            answerContainer.style.display = 'none';
+            return;
+        }
+
+        if (event && event.key === "Enter" && answerContainer.style.display === 'block') {
+            const sentMessage = messageInput.value.trim();
+            const token = localStorage.getItem("session_token");
+    
+            fetch('/reply-message-global-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token, sentMessage, messageToReply, 
+                    messageToReplyTime, messageId}),
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                const { nickname, replyText, time, fullTime, messageAnswer } = data;
+            
+                const replyMessage = document.createElement("div");
+                replyMessage.className = "message reply";
+            
+                const replyHeader = document.createElement("div");
+                replyHeader.className = "message-header";
+            
+                const replyNicknameElement = document.createElement("span");
+                replyNicknameElement.className = "nickname";
+                replyNicknameElement.textContent = nickname;
+            
+                const replyTimeElement = document.createElement("span");
+                replyTimeElement.className = "time";
+                replyTimeElement.textContent = time;
+            
+                const replyFullTimeElement = document.createElement("div");
+                replyFullTimeElement.className = "full-time";
+                replyFullTimeElement.textContent = fullTime;
+                replyFullTimeElement.style.display = "none";
+            
+
+                const replyTextElement = document.createElement("div");
+                replyTextElement.className = "reply-text";
+                replyTextElement.textContent = `"${replyText}"`;
+                replyTextElement.style.fontStyle = "italic";
+                replyTextElement.style.borderLeft = "2px solid gray";
+                replyTextElement.style.paddingLeft = "10px";
+                replyTextElement.style.marginBottom = "5px";
+            
+                const messageAnswerElement = document.createElement("div");
+                messageAnswerElement.className = "message-text";
+                messageAnswerElement.textContent = messageAnswer;
+            
+                replyMessage.appendChild(replyHeader);
+                replyHeader.appendChild(replyNicknameElement);
+                replyHeader.appendChild(replyTimeElement);
+                replyMessage.appendChild(replyFullTimeElement);
+                replyMessage.appendChild(replyTextElement); 
+                replyMessage.appendChild(messageAnswerElement); 
+            
+                messagesContainer.appendChild(replyMessage);
+            })
+            .catch((error) => {
+                console.error('Error during fetch:', error);
+            });
+        } 
+    }
+
+    let editingMessage = null;
+
+    pencilIcon.addEventListener("click", function (e) {
+        e.preventDefault();
+        
+        const token = localStorage.getItem("session_token");
+        const message = getLastHoveredMessage();
+        
+        editingMessage = message;
+
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = editingMessage; 
+        const messageText = tempContainer.querySelector('.message-text')?.innerText.trim();
+        const nickname = tempContainer.querySelector('.nickname').innerText;
+        const time = tempContainer.querySelector('.full-time').innerText;
+    
+        const messageInput = document.getElementById("message-input");
+        const editContainer = document.getElementById("edit-container");
+    
+        if (answerContainer.style.display === 'block') {
+            answerContainer.style.display = 'none';
+        }
+    
+        if (editContainer.style.display === 'block') {
+            editContainer.style.display = 'none';
+        }
+    
+        if (token) {
+            console.info(token)
+            console.info(messageText)
+            
+            fetch('/verify-edit-message-global-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token, messageText, time }),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    messageInput.value = messageText;
+                    messageInput.focus();
+                    editContainer.style.display = 'block';
+                    document.removeEventListener("keydown", handleNewMessage);
+                    document.addEventListener("keydown", handleNewMessage);
+                    editContainer.innerText = "Вы редактируете сообщение •" + " " + "esc для отмены • enter чтобы сохранить";
+                } 
+            })
+            .catch((error) => {
+                console.error('Error during fetch:', error);
+            });
+        } else {
+            console.warn('No message selected to edit.');
+        }
+    });
+    
+    function handleNewMessage(event) {
+        console.info(editingMessage)
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = editingMessage; 
+
+        const nickname = tempContainer.querySelector('.nickname').innerText;
+        const time = tempContainer.querySelector('.full-time').innerText;
+        const oldMessage = tempContainer.querySelector('.message-text').innerText;
+    
+        const messageInput = document.getElementById("message-input");
+        const editContainer = document.getElementById("edit-container");
+    
+        if (event && event.key === "Escape") {
+            messageInput.value = "";
+            messageInput.blur();
+            editContainer.style.display = 'none';
+            return;
+        }
+    
+        if (event && event.key === "Enter" && editContainer.style.display === 'block') {
+            const newMessage = messageInput.value.trim();
+    
+            console.info(oldMessage);
+            console.info(newMessage);
+            fetch('/edit-message-global-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nickname, time, oldMessage, newMessage }),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    console.info('Message edited successfully');
+    
+                    if (lastHoveredMessage) {
+                        lastHoveredMessage.querySelector('.message-text').textContent = newMessage;
+                    }
+    
+                    if (lastHoveredMessage) {
+                        const rect = lastHoveredMessage.getBoundingClientRect();
+                        const containerRect = messagesContainer.getBoundingClientRect();
+                        const maxRight = containerRect.right - messageControlPanel.offsetWidth - 40;
+    
+                        messageControlPanel.style.top = `${rect.top + window.scrollY - 10}px`;
+                        messageControlPanel.style.left = `${maxRight + window.scrollX}px`;
+                    }
+    
+                    editContainer.style.display = 'none';
+                    messageInput.value = "";
+                    messageInput.blur()
+                    editingMessage = null;
+                } else {
+                    console.error('Failed to edit message');
+                }
+            })
+            .catch((error) => {
+                console.error('Error during fetch:', error);
+            });
+        } 
+    }    
+
+    binIcon.addEventListener("click", function (e) {
+        e.preventDefault();
+        
+        let message = getLastHoveredMessage();
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = message;
+    
+        const nickname = tempContainer.querySelector('.nickname').innerText;
+        const time = tempContainer.querySelector('.full-time').innerText;
+        const text = tempContainer.querySelector('.message-text').innerText;
+        
+        const messageInput = document.getElementById("message-input");
+        const answerContainer = document.getElementById("answer-container");
+        const editContainer = document.getElementById("edit-container");
+
+        const token = localStorage.getItem("session_token");
+        
+        if (editContainer.style.display === 'block') {
+            editContainer.style.display = 'none';
+            messageInput.value = "";
+        }
+
+        if (answerContainer.style.display === 'block') {
+            answerContainer.style.display = 'none';
+            messageInput.value = "";
+        }
+
+        if (message) {
+            fetch('/delete-message-global-chat', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nickname, token, time, text }),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    console.info('Message deleted successfully');
+                    
+                    const messageElement = lastHoveredMessage; 
+                    if (messageElement) {
+                        messageElement.remove(); 
+                    }
+    
+                    const nextMessage = document.querySelector(".message");
+                    if (nextMessage) {
+                        lastHoveredMessage = nextMessage; 
+                        
+                        const rect = nextMessage.getBoundingClientRect();
+                        const containerRect = messagesContainer.getBoundingClientRect();
+                        const maxRight = containerRect.right - messageControlPanel.offsetWidth - 40;
+    
+                        messageControlPanel.style.top = `${rect.top + window.scrollY - 10}px`;
+                        messageControlPanel.style.left = `${maxRight + window.scrollX}px`;
+                    } else {
+                        lastHoveredMessage = null;
+                        messageControlPanel.style.display = 'none';
+                    }
+                    
+                } else {
+                    console.error('Failed to delete message');
+                }
+            })
+            .catch((error) => {
+                console.error('Error during fetch:', error);
+            });
+        }
+    });
+    
 });
