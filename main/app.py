@@ -5,7 +5,7 @@ from datetime import datetime
 
 from handlers import (
     validate_username, validate_password, validate_email, 
-    hash_password, send_verification_code
+    hash_password, send_verification_code, parse_html_text
 )
 
 from db import (
@@ -13,7 +13,9 @@ from db import (
     add_code_to_db, check_hash_pass, add_user_password, 
     update_user_password, get_user_id, create_session_token,
     verify_session_token, get_user_nickname, add_message_to_db,
-    render_messages
+    render_messages, delete_message_from_db, get_message_id, 
+    edit_new_user_message, get_user_id_from_message,
+    add_message_with_reply_to_db
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +46,7 @@ cursor.execute('''
     sender_id INTEGER NOT NULL,
     message TEXT NOT NULL,
     sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reply_to INTEGER REFERENCES global_chat(id),
     FOREIGN KEY (sender_id) REFERENCES users(id)
     )
 ''')
@@ -243,7 +246,7 @@ def process_user_message():
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
 
     user = verify_session_token(token)
-    if user == False:
+    if user[0] == False:
         return jsonify({"success": False, "message": "Токен невалидный"}), 400
     user_id = user[1]
 
@@ -256,9 +259,107 @@ def process_user_message():
     
     nickname = get_user_nickname(user_id)
     add_message_to_db(user_id, user_message, time)
+    message_id = get_message_id(user_id, time, user_message)
     showTime = time[:-3] 
     
-    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime})
+    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime, "fullTime": time, "messageId": message_id })
+
+@app.route("/delete-message-global-chat", methods=["DELETE"])
+def delete_user_message():
+    data = request.get_json() 
+    nickname = data.get("nickname")
+    token = data.get("token")
+    time = data.get("time")
+    text = data.get("text")
+
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+    
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+
+    user_id = get_user_id(nickname)
+
+    if user_id != user[1]:
+        return jsonify({"success": False, "message": "Сообщение не принадлежит юзеру"}), 400
+
+    if not text:
+        return jsonify({"success": False, "error": "Сообщение пустое"}), 400
+    
+    delete_message_from_db(user_id, text, time)
+    return jsonify({'success': True}), 200
+
+@app.route("/verify-edit-message-global-chat", methods=["POST"])
+def verify_edit_user_message():
+    data = request.get_json()
+    token = data.get("token")
+    message = data.get("messageText")
+    time = data.get("time")
+
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+    
+    user_id = get_user_id_from_message(user[1], message, time)
+    
+    if user[1] != user_id:
+        return jsonify({"success": False, "message": "Сообщение не принадлежит юзеру"}), 400
+
+    return jsonify({'success': True}), 200
+
+@app.route("/edit-message-global-chat", methods=["POST"])
+def edit_user_message():
+    data = request.get_json()
+    nickname = data.get("nickname")
+    time = data.get("time")
+    oldMessage = data.get("oldMessage")
+    newMessage = data.get("newMessage")
+
+    if not newMessage:
+        return jsonify({"success": False, "message": "Сообщение пустое"}), 400
+    
+    user_id = get_user_id(nickname)
+
+    message_id = get_message_id(user_id, time, oldMessage)
+    # print(message_id)
+    edit_new_user_message(message_id, newMessage)
+
+    return jsonify({'success': True}), 200
+
+@app.route("/reply-message-global-chat", methods=["POST"])
+def reply_to_message():
+    data = request.get_json()
+    token = data.get("token")
+    sentMessage = data.get("sentMessage")
+    messageToReply = data.get("messageToReply")
+    messageToReplyTime = data.get("messageToReplyTime")
+    messageId = data.get("messageId")
+
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+    
+    if not sentMessage:
+        return jsonify({"success": False, "message": "Сообщение пустое"}), 400
+    
+    if not messageToReply:
+        messageToReply = "Сообщение удалено"
+
+    time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
+    
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+
+    add_message_with_reply_to_db(user[1], sentMessage, messageId, time)
+    nickname = get_user_nickname(user[1])
+    showTime = time[:-3] 
+    
+    return jsonify({"success": True, "nickname": nickname, "replyText": sentMessage, 
+                    "time": showTime, 'messageAnswer ': messageToReply, "fullTime": time, })
 
 if __name__ == "__main__":
     app.run(debug=True)

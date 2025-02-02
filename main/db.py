@@ -147,7 +147,22 @@ def verify_session_token(token):
         return False
     
     return True, user[1]
-    
+
+def get_user_id_from_message(user_id, message, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute(
+        'SELECT * FROM global_chat WHERE sender_id = ? AND message = ? AND sent_at = ?',
+        (user_id, message, time)
+    )
+
+    message = cursor.fetchone()
+    print(message)
+    conn.close()
+
+    return message[1]
+
 def get_user_nickname(user_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -198,3 +213,58 @@ def render_messages(offset, limit):
     conn.close()
     
     return messages
+
+def delete_message_from_db(user_id, message, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    print(user_id, message, time)
+    cursor.execute(
+        'DELETE FROM global_chat WHERE sender_id = ? AND message = ? AND sent_at = ?',
+        (user_id, message, time)
+    )
+
+    conn.commit()
+    
+    cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
+    row = cursor.fetchall()
+    print(row)
+
+    conn.close()
+
+def get_message_id(user_id, time, message):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    print(user_id, time, message)
+    cursor.execute(
+        'SELECT id FROM global_chat WHERE sender_id = ? AND sent_at = ? AND message = ?',
+        (user_id, time, message)
+    )
+
+    message = cursor.fetchone()
+    # print(message)
+    conn.close()
+
+    return message[0]
+
+def edit_new_user_message(message_id, message):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''UPDATE global_chat SET message = ? WHERE id = ?''', (message, message_id))
+
+    conn.commit()
+    conn.close()
+
+def add_message_with_reply_to_db(user_id, messageAnswer, messageTextId, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO global_chat (sender_id, message, sent_at, reply_to)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, messageAnswer, time, messageTextId))
+
+    conn.commit()
+    conn.close()

@@ -120,3 +120,22 @@ def create_token():
     token = secrets.token_hex(32)
 
     return token
+
+def parse_html_text(message):
+    lst = []
+    r = len(message) - 1
+
+    while message[r] != "<":
+        r -= 1
+        
+    l = r
+
+    while message[l] != ">":
+        l -= 1
+        
+    for i in range(l + 1, r):
+        lst.append(message[i])
+
+    text = ''.join(lst)
+    
+    return text
