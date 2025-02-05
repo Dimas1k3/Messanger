@@ -357,10 +357,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = message; 
-        const messageToReply = tempContainer.querySelector('.message-text')?.innerText.trim();
-        const messageToReplyTime = tempContainer.querySelector('.full-time')?.innerText.trim();
+        const repliedMessage = tempContainer.querySelector('.message-text')?.innerText.trim();
         const messageId = tempContainer.querySelector('.message-id')?.innerText.trim();
-        console.log(messageId);
 
         const messageInput = document.getElementById("message-input")
         const answerContainer = document.getElementById("answer-container")
@@ -373,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (event && event.key === "Enter" && answerContainer.style.display === 'block') {
-            const sentMessage = messageInput.value.trim();
+            const answerMessage = messageInput.value.trim();
             const token = localStorage.getItem("session_token");
     
             fetch('/reply-message-global-chat', {
@@ -381,53 +379,67 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ token, sentMessage, messageToReply, 
-                    messageToReplyTime, messageId}),
+                body: JSON.stringify({ token, answerMessage, repliedMessage, messageId}),
             })
             .then(response => response.json()) 
             .then(data => {
-                const { nickname, replyText, time, fullTime, messageAnswer } = data;
+                const { nickname, answerMessage, time, repliedMessage, fullTime } = data;
             
-                const replyMessage = document.createElement("div");
-                replyMessage.className = "message reply";
+                const messagesContainer = document.getElementById("messages-container");
+                if (!messagesContainer) {
+                    console.error("messages-container не найден!");
+                    return;
+                }
             
-                const replyHeader = document.createElement("div");
-                replyHeader.className = "message-header";
+                const newMessage = document.createElement("div");
+                newMessage.className = "message";
             
-                const replyNicknameElement = document.createElement("span");
-                replyNicknameElement.className = "nickname";
-                replyNicknameElement.textContent = nickname;
+                const messageHeader = document.createElement("div");
+                messageHeader.className = "message-header";
             
-                const replyTimeElement = document.createElement("span");
-                replyTimeElement.className = "time";
-                replyTimeElement.textContent = time;
+                const nicknameElement = document.createElement("span");
+                nicknameElement.className = "nickname";
+                nicknameElement.textContent = nickname;
             
-                const replyFullTimeElement = document.createElement("div");
-                replyFullTimeElement.className = "full-time";
-                replyFullTimeElement.textContent = fullTime;
-                replyFullTimeElement.style.display = "none";
+                const timeElement = document.createElement("span");
+                timeElement.className = "time";
+                timeElement.textContent = time;
             
-
-                const replyTextElement = document.createElement("div");
-                replyTextElement.className = "reply-text";
-                replyTextElement.textContent = `"${replyText}"`;
-                replyTextElement.style.fontStyle = "italic";
-                replyTextElement.style.borderLeft = "2px solid gray";
-                replyTextElement.style.paddingLeft = "10px";
-                replyTextElement.style.marginBottom = "5px";
+                const fullTimeElement = document.createElement("div");
+                fullTimeElement.className = "full-time";
+                fullTimeElement.textContent = fullTime;
+                fullTimeElement.style.display = "none"; 
             
-                const messageAnswerElement = document.createElement("div");
-                messageAnswerElement.className = "message-text";
-                messageAnswerElement.textContent = messageAnswer;
+                const messageTextElement = document.createElement("div");
+                messageTextElement.className = "message-text";
+                messageTextElement.textContent = answerMessage;
             
-                replyMessage.appendChild(replyHeader);
-                replyHeader.appendChild(replyNicknameElement);
-                replyHeader.appendChild(replyTimeElement);
-                replyMessage.appendChild(replyFullTimeElement);
-                replyMessage.appendChild(replyTextElement); 
-                replyMessage.appendChild(messageAnswerElement); 
+                newMessage.appendChild(messageHeader);
+                messageHeader.appendChild(nicknameElement);
+                messageHeader.appendChild(timeElement);
+                newMessage.appendChild(fullTimeElement);
             
-                messagesContainer.appendChild(replyMessage);
+                // Если есть ответное сообщение, создаем отдельный блок над основным
+                if (repliedMessage) {
+                    const replyContainer = document.createElement("div");
+                    replyContainer.className = "reply-container";
+                    replyContainer.style.background = "#f0f0f0";
+                    replyContainer.style.padding = "5px";
+                    replyContainer.style.marginBottom = "5px";
+                    replyContainer.style.borderLeft = "3px solid gray";
+                    replyContainer.style.fontStyle = "italic";
+            
+                    const replyText = document.createElement("div");
+                    replyText.className = "reply-text";
+                    replyText.textContent = `→ ${repliedMessage}`;
+            
+                    replyContainer.appendChild(replyText);
+                    newMessage.appendChild(replyContainer);
+                }
+            
+                newMessage.appendChild(messageTextElement);
+            
+                messagesContainer.prepend(newMessage);
             })
             .catch((error) => {
                 console.error('Error during fetch:', error);
@@ -497,8 +509,8 @@ document.addEventListener("DOMContentLoaded", function () {
         tempContainer.innerHTML = editingMessage; 
 
         const nickname = tempContainer.querySelector('.nickname').innerText;
-        const time = tempContainer.querySelector('.full-time').innerText;
         const oldMessage = tempContainer.querySelector('.message-text').innerText;
+        const messageId = tempContainer.querySelector('.message-id').innerText;
     
         const messageInput = document.getElementById("message-input");
         const editContainer = document.getElementById("edit-container");
@@ -520,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nickname, time, oldMessage, newMessage }),
+                body: JSON.stringify({ nickname, oldMessage, newMessage, messageId }),
             })
             .then((response) => {
                 if (response.ok) {
@@ -560,9 +572,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = message;
     
-        const nickname = tempContainer.querySelector('.nickname').innerText;
-        const time = tempContainer.querySelector('.full-time').innerText;
-        const text = tempContainer.querySelector('.message-text').innerText;
+        const nickname = tempContainer.querySelector('.nickname').innerText.trim();
+        const text = tempContainer.querySelector('.message-text').innerText.trim();
+        const messageId = tempContainer.querySelector('.message-id').innerText.trim();
         
         const messageInput = document.getElementById("message-input");
         const answerContainer = document.getElementById("answer-container");
@@ -586,7 +598,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nickname, token, time, text }),
+                body: JSON.stringify({ nickname, token, text, messageId }),
             })
             .then((response) => {
                 if (response.ok) {
