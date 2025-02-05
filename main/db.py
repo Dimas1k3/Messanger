@@ -214,21 +214,20 @@ def render_messages(offset, limit):
     
     return messages
 
-def delete_message_from_db(user_id, message, time):
+def delete_message_from_db(user_id, message, message_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    print(user_id, message, time)
     cursor.execute(
-        'DELETE FROM global_chat WHERE sender_id = ? AND message = ? AND sent_at = ?',
-        (user_id, message, time)
+        'DELETE FROM global_chat WHERE sender_id = ? AND message = ? AND id = ?',
+        (user_id, message, message_id)
     )
 
     conn.commit()
     
-    cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
-    row = cursor.fetchall()
-    print(row)
+    # cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
+    # row = cursor.fetchall()
+    # print(row)
 
     conn.close()
 

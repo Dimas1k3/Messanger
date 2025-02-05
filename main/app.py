@@ -269,8 +269,8 @@ def delete_user_message():
     data = request.get_json() 
     nickname = data.get("nickname")
     token = data.get("token")
-    time = data.get("time")
-    text = data.get("text")
+    text = data.get('text')
+    message_id = data.get("messageId")
 
     if not token:
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
@@ -287,7 +287,7 @@ def delete_user_message():
     if not text:
         return jsonify({"success": False, "error": "Сообщение пустое"}), 400
     
-    delete_message_from_db(user_id, text, time)
+    delete_message_from_db(user_id, text, message_id)
     return jsonify({'success': True}), 200
 
 @app.route("/verify-edit-message-global-chat", methods=["POST"])
@@ -315,17 +315,13 @@ def verify_edit_user_message():
 def edit_user_message():
     data = request.get_json()
     nickname = data.get("nickname")
-    time = data.get("time")
     oldMessage = data.get("oldMessage")
     newMessage = data.get("newMessage")
+    message_id = data.get("messageId")
 
     if not newMessage:
         return jsonify({"success": False, "message": "Сообщение пустое"}), 400
     
-    user_id = get_user_id(nickname)
-
-    message_id = get_message_id(user_id, time, oldMessage)
-    # print(message_id)
     edit_new_user_message(message_id, newMessage)
 
     return jsonify({'success': True}), 200
@@ -334,19 +330,18 @@ def edit_user_message():
 def reply_to_message():
     data = request.get_json()
     token = data.get("token")
-    sentMessage = data.get("sentMessage")
-    messageToReply = data.get("messageToReply")
-    messageToReplyTime = data.get("messageToReplyTime")
-    messageId = data.get("messageId")
+    answerMessage = data.get("answerMessage")
+    repliedMessage = data.get("repliedMessage")
+    message_id = data.get("messageId")
 
     if not token:
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
     
-    if not sentMessage:
+    if not answerMessage:
         return jsonify({"success": False, "message": "Сообщение пустое"}), 400
     
-    if not messageToReply:
-        messageToReply = "Сообщение удалено"
+    if not repliedMessage:
+        repliedMessage = "Сообщение удалено"
 
     time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
     
@@ -354,12 +349,12 @@ def reply_to_message():
     if user[0] == False:
         return jsonify({"success": False, "message": "Токен невалидный"}), 400
 
-    add_message_with_reply_to_db(user[1], sentMessage, messageId, time)
+    add_message_with_reply_to_db(user[1], answerMessage, message_id, time)
     nickname = get_user_nickname(user[1])
     showTime = time[:-3] 
     
-    return jsonify({"success": True, "nickname": nickname, "replyText": sentMessage, 
-                    "time": showTime, 'messageAnswer ': messageToReply, "fullTime": time, })
+    return jsonify({"success": True, "nickname": nickname, "answerMessage": answerMessage, 
+                    "time": showTime, 'repliedMessage ': repliedMessage, "fullTime": time, })
 
 if __name__ == "__main__":
     app.run(debug=True)
