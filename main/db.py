@@ -116,6 +116,17 @@ def get_user_id(username):
 
     return user[0]
 
+def get_user_id_by_message_id(message_id):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM global_chat WHERE id = ?', (message_id,))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user[1]
+
 def create_session_token(user_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -195,21 +206,23 @@ def render_messages(offset, limit):
             global_chat.id,
             users.username,
             global_chat.message,
-            global_chat.sent_at
+            global_chat.sent_at,
+            global_chat.reply_to,
+            parent.message AS replied_message  -- Берем текст родительского сообщения
         FROM 
             global_chat
         JOIN 
-            users 
-        ON 
-            global_chat.sender_id = users.id
+            users ON global_chat.sender_id = users.id
+        LEFT JOIN 
+            global_chat AS parent ON global_chat.reply_to = parent.id  -- Связываем сообщения по reply_to
         ORDER BY 
             global_chat.sent_at DESC,
             global_chat.id DESC
         LIMIT ? OFFSET ?;
     '''
-
     cursor.execute(query, (limit, offset))
     messages = cursor.fetchall() 
+
     conn.close()
     
     return messages
@@ -217,17 +230,18 @@ def render_messages(offset, limit):
 def delete_message_from_db(user_id, message, message_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
-
+    
+    print(user_id, message, message_id)
     cursor.execute(
         'DELETE FROM global_chat WHERE sender_id = ? AND message = ? AND id = ?',
         (user_id, message, message_id)
     )
-
+    
     conn.commit()
     
-    # cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
-    # row = cursor.fetchall()
-    # print(row)
+    cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
+    row = cursor.fetchall()
+    print(row)
 
     conn.close()
 
@@ -267,3 +281,14 @@ def add_message_with_reply_to_db(user_id, messageAnswer, messageTextId, time):
 
     conn.commit()
     conn.close()
+
+def get_message_text(message_id):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT message FROM global_chat WHERE id = ?', (message_id,))
+    message_text = cursor.fetchone() 
+
+    conn.close()
+
+    return message_text

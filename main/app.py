@@ -15,7 +15,7 @@ from db import (
     verify_session_token, get_user_nickname, add_message_to_db,
     render_messages, delete_message_from_db, get_message_id, 
     edit_new_user_message, get_user_id_from_message,
-    add_message_with_reply_to_db
+    add_message_with_reply_to_db, get_user_id_by_message_id
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -89,16 +89,48 @@ def main_page():
     limit = 20
     messages = render_messages(offset, limit)
 
+    data_as_lists = []
+    for message in messages:
+        data_as_lists.append(list(message))
+
+    for lst in data_as_lists:
+        if lst[-2] is None and lst[-1] is None:
+            lst.append(None)
+            continue
+        
+        user_id = get_user_id_by_message_id(message_id=lst[-2])
+        nickname = get_user_nickname(user_id)
+        
+        lst.append(nickname)
+    
+    messages = data_as_lists
+
     return render_template("main_page.html", messages=messages)
 
 @app.route('/load-messages', methods=['GET'])
 def load_messages():
-    offset = int(request.args.get('offset', 0))  
-    # print(f"Полученный offset: {offset} в /load")
+    offset = int(request.args.get('offset', 0))
+    # print(f"Полученный offset: {offset} в /main")
 
-    limit = 20  
-    messages = render_messages(offset, limit)  
-    # print(messages)
+    limit = 20
+    messages = render_messages(offset, limit)
+
+    data_as_lists = []
+    for message in messages:
+        data_as_lists.append(list(message))
+
+    for lst in data_as_lists:
+        if lst[-2] is None and lst[-1] is None:
+            lst.append(None)
+            continue
+        
+        user_id = get_user_id_by_message_id(message_id=lst[-2])
+        nickname = get_user_nickname(user_id)
+        
+        lst.append(nickname)
+    
+    messages = data_as_lists
+
     return jsonify(messages)
 
 @app.route("/register", methods=["GET"])
@@ -332,6 +364,7 @@ def reply_to_message():
     token = data.get("token")
     answerMessage = data.get("answerMessage")
     repliedMessage = data.get("repliedMessage")
+    repliedMessageNickname = data.get("repliedMessageNickname")
     message_id = data.get("messageId")
 
     if not token:
@@ -352,9 +385,9 @@ def reply_to_message():
     add_message_with_reply_to_db(user[1], answerMessage, message_id, time)
     nickname = get_user_nickname(user[1])
     showTime = time[:-3] 
-    
+
     return jsonify({"success": True, "nickname": nickname, "answerMessage": answerMessage, 
-                    "time": showTime, 'repliedMessage ': repliedMessage, "fullTime": time, })
+                    "time": showTime, 'repliedMessage ': repliedMessage, "fullTime": time, "repliedMessageNickname": repliedMessageNickname })
 
 if __name__ == "__main__":
     app.run(debug=True)
