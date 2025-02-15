@@ -227,6 +227,17 @@ def render_messages(offset, limit):
     
     return messages
 
+def get_status_edited_or_not(message_id):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT edited FROM global_chat WHERE id = ?', (message_id,))
+    row = cursor.fetchone()
+
+    conn.close()
+    print(row)
+    return row[0]
+
 def delete_message_from_db(user_id, message, message_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -265,7 +276,11 @@ def edit_new_user_message(message_id, message):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute('''UPDATE global_chat SET message = ? WHERE id = ?''', (message, message_id))
+    cursor.execute('''
+        UPDATE global_chat 
+        SET message = ?, edited = ? 
+        WHERE id = ?
+    ''', (message, 1, message_id))
 
     conn.commit()
     conn.close()

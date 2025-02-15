@@ -15,7 +15,8 @@ from db import (
     verify_session_token, get_user_nickname, add_message_to_db,
     render_messages, delete_message_from_db, get_message_id, 
     edit_new_user_message, get_user_id_from_message,
-    add_message_with_reply_to_db, get_user_id_by_message_id
+    add_message_with_reply_to_db, get_user_id_by_message_id,
+    get_status_edited_or_not
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +48,7 @@ cursor.execute('''
     message TEXT NOT NULL,
     sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     reply_to INTEGER REFERENCES global_chat(id),
+    edited BOOLEAN NOT NULL DEFAULT 0,  -- 0 = не редактировано, 1 = отредактировано
     FOREIGN KEY (sender_id) REFERENCES users(id)
     )
 ''')
@@ -95,15 +97,21 @@ def main_page():
 
     for lst in data_as_lists:
         if lst[-2] is None and lst[-1] is None:
+            edited = get_status_edited_or_not(message_id=lst[0])
+            
             lst.append(None)
+            lst.append(edited)
             continue
         
         user_id = get_user_id_by_message_id(message_id=lst[-2])
         nickname = get_user_nickname(user_id)
-        
         lst.append(nickname)
+
+        edited = get_status_edited_or_not(message_id=lst[0])
+        lst.append(edited)
     
     messages = data_as_lists
+    # print(messages)
 
     return render_template("main_page.html", messages=messages)
 
@@ -121,13 +129,18 @@ def load_messages():
 
     for lst in data_as_lists:
         if lst[-2] is None and lst[-1] is None:
+            edited = get_status_edited_or_not(message_id=lst[0])
+            
             lst.append(None)
+            lst.append(edited)
             continue
         
         user_id = get_user_id_by_message_id(message_id=lst[-2])
         nickname = get_user_nickname(user_id)
-        
         lst.append(nickname)
+
+        edited = get_status_edited_or_not(message_id=lst[0])
+        lst.append(edited)
     
     messages = data_as_lists
 
@@ -375,6 +388,7 @@ def reply_to_message():
     
     if not repliedMessage:
         repliedMessage = "Сообщение удалено"
+        repliedMessageNickname = ""
 
     time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
     
