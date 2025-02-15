@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(currentOffset);
         
         messages.reverse().forEach(message => {
-            const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname ] = message;  
+            const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;  
             const trimmedTimestamp = timestamp.slice(0, -3);
             const messagesContainer = document.getElementById("messages-container");
         
@@ -93,6 +93,16 @@ document.addEventListener("DOMContentLoaded", function () {
             messageIdElement.className = "message-id";
             messageIdElement.textContent = id;
             messageIdElement.style.display = "none";
+
+            if (editedStatus == 1) {
+                const editedLabel = document.createElement("span");
+                editedLabel.className = "edited-label";
+                editedLabel.textContent = " (отредактировано)";
+                editedLabel.style.color = "gray";
+                editedLabel.style.fontSize = "12px";
+                editedLabel.style.marginLeft = "5px";
+                timeElement.appendChild(editedLabel);
+            }
         
             if (repliedMessage) {
                 const replyContainer = document.createElement("div");
@@ -258,6 +268,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     messageIdElement.className = "message-id";
                     messageIdElement.textContent = id;
                     messageIdElement.style.display = "none";
+
+                    if (editedStatus == 1) {
+                        const editedLabel = document.createElement("span");
+                        editedLabel.className = "edited-label";
+                        editedLabel.textContent = " (отредактировано)";
+                        editedLabel.style.color = "gray";
+                        editedLabel.style.fontSize = "12px";
+                        editedLabel.style.marginLeft = "5px";
+                        timeElement.appendChild(editedLabel);
+                    }
                 
                     if (replyTo && repliedMessage) {
                         const replyContainer = document.createElement("div");
@@ -301,12 +321,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Ошибка при загрузке сообщений:", error);
             });
     }
+
+    function scrollToMessage(messageId) {
+        const message = document.getElementById(messageId);
+        if (message) {
+            message.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }
     
     function wait(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     messagesContainer.addEventListener("scroll", function () {
+        if (messageControlPanel.style.display === 'block') {
+            messageControlPanel.style.display = 'none'
+        }
+        
         if (messagesContainer.scrollTop === 0) { 
             loadMoreMessages(); 
             let lastHoveredMessage = null;
@@ -355,8 +386,17 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             const editContainer = document.getElementById("edit-container");
             const answerContainer = document.getElementById("answer-container");
-    
-            if (editContainer.style.display === "none" && answerContainer.style.display === "none") {
+            const searchInput = document.getElementById("searchInput")
+            
+            if (document.activeElement === searchInput) {
+                return;
+            }
+
+            if (
+                editContainer.style.display === "none" &&
+                answerContainer.style.display === "none" &&
+                document.activeElement !== searchInput 
+            ) {
                 sendMessage();
                 message_input.blur();
                 wait(300).then(() => {
@@ -612,6 +652,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         messageControlPanel.style.top = `${rect.top + window.scrollY - 10}px`;
                         messageControlPanel.style.left = `${maxRight + window.scrollX}px`;
                     }
+
+                    const messageHeader = lastHoveredMessage.querySelector(".time");
+
+                    console.log(messageHeader)
+                    const editedLabel = document.createElement("span");
+                    editedLabel.className = "edited-label";
+                    editedLabel.textContent = " (отредактировано)";
+                    editedLabel.style.color = "gray";
+                    editedLabel.style.fontSize = "12px";
+                    editedLabel.style.marginLeft = "5px";
+                    messageHeader.appendChild(editedLabel);
     
                     editContainer.style.display = 'none';
                     messageInput.value = "";
