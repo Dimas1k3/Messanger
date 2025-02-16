@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const message_input = document.getElementById("message-input");
     const messagesContainer = document.getElementById("messages-container");
     let currentOffset = parseInt(document.getElementById("current-offset").value, 10);
+    const searchInput = document.getElementById("searchInput")
 
     const dataContainer = document.getElementById("data-container");
     const messages = JSON.parse(dataContainer.dataset.messages); 
@@ -138,8 +139,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("current-offset").value = currentOffset;
     }
 
+    renderMessages(messages);
 
-    renderMessages(messages)
     wait(300).then(() => {
         getMessagesDiv(); 
     });
@@ -237,7 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const currentScrollTop = messagesContainer.scrollTop;
                 
                 messages.forEach(message => {
-                    const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname] = message;
+                    const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
                     const trimmedTimestamp = timestamp.slice(0, -3);
                     const messagesContainer = document.getElementById("messages-container");
                 
@@ -321,13 +322,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Ошибка при загрузке сообщений:", error);
             });
     }
-
-    function scrollToMessage(messageId) {
-        const message = document.getElementById(messageId);
-        if (message) {
-            message.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-    }
     
     function wait(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -348,7 +342,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.ctrlKey) {
+        if (e.key === "Enter" || e.ctrlKey || e.key === "Escape") {
+            return;
+        }
+
+        if (document.activeElement === searchInput) {
             return;
         }
         
@@ -386,11 +384,6 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             const editContainer = document.getElementById("edit-container");
             const answerContainer = document.getElementById("answer-container");
-            const searchInput = document.getElementById("searchInput")
-            
-            if (document.activeElement === searchInput) {
-                return;
-            }
 
             if (
                 editContainer.style.display === "none" &&
@@ -406,6 +399,71 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    function scrollToMessage(messageId) {
+        let messages = document.querySelectorAll(".message");
+        const messagesContainer = document.getElementById("messages-container")
+
+        messages.forEach(msg => {
+            let idElement = msg.querySelector(".message-id"); 
+            if (idElement && idElement.textContent.trim() === messageId.toString()) {
+                msg.scrollIntoView({ behavior: "smooth", block: "center" }); 
+                msg.style.backgroundColor = '#e0e0e0';
+            } else { 
+                // скролл при динамической прогрузке
+            }
+        });
+    }
+    
+    searchInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            let messageToFind = searchInput.value.trim(); 
+            searchInput.value = "";
+    
+            const token = localStorage.getItem("session_token");
+            const chatHeader = document.getElementById("chat-header")
+    
+            fetch('/find-message-global-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token, messageToFind }),
+            })
+            .then(response => {
+                if (!response.ok) { 
+                    return response.json().then(err => { throw new Error(err.message); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.info("Сообщение найдено:", data.message_id);
+                scrollToMessage(data.message_id)
+                const errorMessage = document.querySelector("#chat-header span");
+                errorMessage.remove();
+            })            
+            .catch(error => {
+                const errorMessage = document.querySelector("#chat-header span");
+                
+                if (error.message === "Ничего не найдено" && !errorMessage) {
+                    console.info("Сообщение не найдено");
+                    const errorMessage = document.createElement("span");
+                    errorMessage.textContent = "Ничего не найдено";
+                    errorMessage.style.color = "red";
+                    errorMessage.style.marginLeft = "620px";
+                    chatHeader.insertBefore(errorMessage, searchInput);
+                }
+            });
+        }   
+    
+        if (e.key === "Escape") {
+            searchInput.blur();
+            searchInput.value = "";
+            const errorMessage = document.querySelector("#chat-header span");
+            errorMessage.remove();
+        }
+    });
+    
     const arrowIcon = document.getElementById("arrow-icon")
     const pencilIcon = document.getElementById("pencil-icon")
     const binIcon = document.getElementById("bin-icon")

@@ -235,7 +235,7 @@ def get_status_edited_or_not(message_id):
     row = cursor.fetchone()
 
     conn.close()
-    print(row)
+    # print(row)
     return row[0]
 
 def delete_message_from_db(user_id, message, message_id):
@@ -307,3 +307,14 @@ def get_message_text(message_id):
     conn.close()
 
     return message_text
+
+def find_message_id_by_text(message_to_find):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT id FROM global_chat where message = ?', (message_to_find,))
+    message_id = cursor.fetchone() 
+
+    conn.close()
+
+    return message_id

@@ -16,7 +16,7 @@ from db import (
     render_messages, delete_message_from_db, get_message_id, 
     edit_new_user_message, get_user_id_from_message,
     add_message_with_reply_to_db, get_user_id_by_message_id,
-    get_status_edited_or_not
+    get_status_edited_or_not, find_message_id_by_text
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -402,6 +402,25 @@ def reply_to_message():
 
     return jsonify({"success": True, "nickname": nickname, "answerMessage": answerMessage, 
                     "time": showTime, 'repliedMessage ': repliedMessage, "fullTime": time, "repliedMessageNickname": repliedMessageNickname })
+
+@app.route("/find-message-global-chat", methods=["POST"])
+def find_message_global_chat():
+    data = request.get_json()
+    token = data.get("token")
+    message_to_find = data.get("messageToFind")
+
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+    
+    if not message_to_find:
+        return jsonify({"success": False, "message": "Сообщение отсутствует"}), 400
+
+    message_id = find_message_id_by_text(message_to_find)
+
+    if message_id == None:
+        return jsonify({"success": False, "message": "Ничего не найдено"}), 400
+    
+    return jsonify({"success": True, "message_id": message_id,})
 
 if __name__ == "__main__":
     app.run(debug=True)
