@@ -1,7 +1,7 @@
 #messages-container {
     width: 100%;
     max-width: 1000px;
-    height: 80vh; 
+    height: 75vh; 
     margin: 20px auto;
     padding: 10px;
     border: 1px solid #ccc;
@@ -12,29 +12,48 @@
     overflow-x: hidden;
     white-space: normal;
     word-wrap: break-word;
-    margin-top: 60px;
+    margin-top: 10px;
+}
+
+#chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    position: relative;
+    height: 27px;
+    z-index: 9999;
 }
 
 #searchInput {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 200px;
     padding: 8px;
-    font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    outline: none;
-    background: white;
+    font-size: 16px;
+    background: #ffffff;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
-    z-index: 100; 
-    margin-right: 45vh;
+    margin-left: 10px;
+    width: 200px; 
+    flex: none;
+    margin-left: auto;
+    margin-right: 15px;
+    height: 40%;
 }
 
 #searchInput:focus {
+    background: #f9f9f9;
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-} 
+}
 
 #userList-container {
     position: absolute;
