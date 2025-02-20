@@ -159,6 +159,33 @@ def verify_session_token(token):
     
     return True, user[1]
 
+def verify_session_token_by_id(user_id):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM session_tokens WHERE user_id = ?', (user_id,))
+    user = cursor.fetchone()
+
+    conn.close()
+
+    if user is None:
+        return False
+    
+    return True
+
+def delete_expired_tokens():
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    cursor.execute(
+        'DELETE FROM session_tokens WHERE expires_at <= ?',
+        (current_time,)
+    )
+
+    conn.commit()
+    conn.close()
+
 def get_user_id_from_message(user_id, message, time):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -184,6 +211,23 @@ def get_user_nickname(user_id):
     conn.close()
 
     return user[1]
+
+def get_all_nicknames():
+    user_list = []
+    
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT username FROM users')
+    users = cursor.fetchall()
+    conn.close()
+
+    for user in users:
+        user = list(user)
+        user = ''.join(user) 
+        user_list.append(user)
+
+    return user_list
     
 def add_message_to_db(user_id, user_message, time):
     conn = sqlite3.connect('messanger.db')

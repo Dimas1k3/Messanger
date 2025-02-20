@@ -16,7 +16,9 @@ from db import (
     render_messages, delete_message_from_db, get_message_id, 
     edit_new_user_message, get_user_id_from_message,
     add_message_with_reply_to_db, get_user_id_by_message_id,
-    get_status_edited_or_not, find_message_id_by_text
+    get_status_edited_or_not, find_message_id_by_text,
+    delete_expired_tokens, get_all_nicknames,
+    verify_session_token_by_id
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -85,6 +87,8 @@ def login_page():
 
 @app.route("/main")
 def main_page():
+    delete_expired_tokens()
+
     offset = int(request.args.get('offset', 0))
     # print(f"Полученный offset: {offset} в /main")
 
@@ -145,6 +149,30 @@ def load_messages():
     messages = data_as_lists
 
     return jsonify(messages)
+
+@app.route("/load-user-list", methods=["GET"])
+def load_user_list():
+    user_list = get_all_nicknames()
+    online_users = []
+    offline_users = []
+
+    for user in user_list:
+        user_id = get_user_id(username=user)
+        temp = []
+
+        if verify_session_token_by_id(user_id) == False:
+            temp.append(user)
+            temp.append(user_id)
+            offline_users.append(temp)
+            continue
+        
+        temp.append(user)
+        temp.append(user_id)
+        online_users.append(temp)
+    
+    print(online_users)
+    print(offline_users)
+    return jsonify({"success": True, "onlineUsers": online_users, "offlineUsers": offline_users})
 
 @app.route("/register", methods=["GET"])
 def register_page():
