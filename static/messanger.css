@@ -57,8 +57,9 @@
 
 #userList-container {
     position: absolute;
-    margin-top: -775px;
-    width: 250px;
+    top: 0;
+    margin-top: 20px;
+    width: 300px;
     height: 90vh;
     right: 50px;
     padding: 10px;
@@ -67,6 +68,47 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #ffffff;
     overflow-y: auto;
+}
+
+#online-users, #offline-users {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+}
+
+#online-users {
+    background-color: #d4edda; 
+    border: 1px solid #c3e6cb;
+}
+
+#offline-users {
+    margin-top: 15px;
+    background-color: #f8d7da; 
+    border: 1px solid #f5c6cb;
+}
+
+h3 {
+    margin: 0;
+    padding-bottom: 5px;
+    font-size: 16px;
+    text-align: center;
+}
+
+.user-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    padding: 8px 12px;
+    margin: 5px 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: 0.3s;
+}
+
+.user-card:hover {
+    background-color: #f8f9fa;
 }
 
 #answer-container, #edit-container {
@@ -195,4 +237,40 @@
 
 #bin-icon:hover {
     color: #ff0000;
+}
+
+#user-profile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    width: 250px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+}
+
+#profile-username {
+    font-size: 18px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+
+#send-message-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#send-message-btn:hover {
+    background: #0056b3;
 }

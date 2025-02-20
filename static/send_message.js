@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const send_button = document.getElementById("send-button");
-    const message_input = document.getElementById("message-input");
+    const messageInput = document.getElementById("message-input");
     const messagesContainer = document.getElementById("messages-container");
     let currentOffset = parseInt(document.getElementById("current-offset").value, 10);
     const searchInput = document.getElementById("searchInput")
@@ -50,6 +50,97 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function getUserProfileList() {
+        fetch("/load-user-list")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const onlineUsers = data.onlineUsers;
+                    const offlineUsers = data.offlineUsers;
+                    const allUserElements = [];
+                    
+                    const userListContainer = document.getElementById("userList-container")
+                    
+                    const offlineContainer = document.createElement("div");
+                    offlineContainer.id = "offline-users";
+                    let title = document.createElement("h3");
+                    title.textContent = "Оффлайн";
+                    offlineContainer.appendChild(title);
+    
+                    function createUserCard(username, userId, container) {
+                        let userCard = document.createElement("div");
+                        userCard.classList.add("user-card");
+                    
+                        let nameSpan = document.createElement("span");
+                        nameSpan.textContent = username;
+                        nameSpan.id = 'username';
+                        
+                        let idSpan = document.createElement("span");
+                        idSpan.textContent = userId;
+                        idSpan.id = 'user-id';
+                        idSpan.style.display = "none"; 
+                    
+                        userCard.appendChild(nameSpan);
+                        userCard.appendChild(idSpan);
+
+                        allUserElements.push(userCard);
+                        
+                        container.appendChild(userCard);
+                    }
+    
+                    onlineUsers.forEach(user => createUserCard(user[0], user[1], userListContainer));
+
+                    userListContainer.appendChild(offlineContainer);
+                    
+                    offlineUsers.forEach(user => createUserCard(user[0], user[1], userListContainer));
+                    
+                    console.log(allUserElements)
+                    let userProfile = document.getElementById("user-profile")
+
+                    let messageButton = document.createElement("send-message-btn");
+                    messageButton.id = "send-message-btn";
+                    messageButton.textContent = "Написать в ЛС";
+                    messageButton.addEventListener("click", () => {
+                        alert(`Открытие ЛС с пользователем: ${clickvalue}`);
+                    });
+
+                    allUserElements.forEach(userElement => {
+                        console.log(userElement)
+                        userElement.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            
+                            let usernameSpan = userElement.querySelector("#username");
+                            let clickvalue = usernameSpan.textContent; 
+                            let divvalue = userProfile.textContent; 
+
+                            if (divvalue === clickvalue && userProfile.style.display === 'block') {
+                                userProfile.style.display === 'none';
+                                userProfile.textContent = "";
+                                return;
+                            }
+                            
+                            userProfile.style.display = 'block';
+                            userProfile.textContent = clickvalue;
+                        });
+                    });
+                    
+                } else {
+                    console.error("Ошибка загрузки списка пользователей");
+                }
+            })
+            .catch(error => console.error("Ошибка запроса:", error));
+    }
+
+    document.addEventListener("click", (event) => {
+        const isUserCard = event.target.closest(".user-card"); 
+        let userProfile = document.getElementById   
+    
+        if (!isUserCard && userProfile.style.display === 'block') { 
+            userProfile.style.display = 'none'; 
+            userProfile.textContent = ""; 
+        }
+    });
+    
     function getLastHoveredMessage() {
         return lastHoveredMessage ? lastHoveredMessage.innerHTML : null;
     }
@@ -60,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     function renderMessages(messages) {
         fetch(`/load-messages?offset=${currentOffset}`);
-        console.log(currentOffset);
+        // console.log(currentOffset);
         
         messages.reverse().forEach(message => {
             const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;  
@@ -140,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     renderMessages(messages);
+    getUserProfileList();
 
     wait(300).then(() => {
         getMessagesDiv(); 
@@ -150,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     function sendMessage() {
-        const user_message = message_input.value.trim();
+        const user_message = messageInput.value.trim();
 
         const token = localStorage.getItem("session_token");
 
@@ -214,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 messagesContainer.appendChild(newMessage);
 
-                message_input.value = "";
+                messageInput.value = "";
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         })
@@ -350,8 +442,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
         
-        if (document.activeElement !== message_input) {
-            message_input.focus();
+        if (document.activeElement !== messageInput) {
+            messageInput.focus();
         }
     });
 
@@ -368,16 +460,16 @@ document.addEventListener("DOMContentLoaded", function () {
     //     }
     // });
     
-    message_input.addEventListener("keydown", function (e) {
+    messageInput.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
             if (e.shiftKey) {
                 e.preventDefault(); 
-                let cursorPos = message_input.selectionStart;
-                let textBefore = message_input.value.substring(0, cursorPos);
-                let textAfter = message_input.value.substring(cursorPos);
+                let cursorPos = messageInput.selectionStart;
+                let textBefore = messageInput.value.substring(0, cursorPos);
+                let textAfter = messageInput.value.substring(cursorPos);
                 
-                message_input.value = textBefore + "\n" + textAfter;
-                message_input.selectionStart = message_input.selectionEnd = cursorPos + 1; 
+                messageInput.value = textBefore + "\n" + textAfter;
+                messageInput.selectionStart = messageInput.selectionEnd = cursorPos + 1; 
                 return;
             }
     
@@ -391,7 +483,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.activeElement !== searchInput 
             ) {
                 sendMessage();
-                message_input.blur();
+                messageInput.blur();
                 wait(300).then(() => {
                     getMessagesDiv();
                 });
