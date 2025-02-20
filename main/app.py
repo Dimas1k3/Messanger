@@ -150,11 +150,21 @@ def load_messages():
 
     return jsonify(messages)
 
-@app.route("/load-user-list", methods=["GET"])
+@app.route("/load-user-list", methods=["POST"])
 def load_user_list():
     user_list = get_all_nicknames()
     online_users = []
     offline_users = []
+    data = request.get_json()
+    token = data.get("token")
+
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+    
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+    current_user_id = user[1]
 
     for user in user_list:
         user_id = get_user_id(username=user)
@@ -170,9 +180,10 @@ def load_user_list():
         temp.append(user_id)
         online_users.append(temp)
     
-    print(online_users)
-    print(offline_users)
-    return jsonify({"success": True, "onlineUsers": online_users, "offlineUsers": offline_users})
+    # print(current_user_id)
+    # print(online_users)
+    # print(offline_users)
+    return jsonify({"success": True, "userId": current_user_id, "onlineUsers": online_users, "offlineUsers": offline_users})
 
 @app.route("/register", methods=["GET"])
 def register_page():
