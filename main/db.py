@@ -241,6 +241,19 @@ def add_message_to_db(user_id, user_message, time):
     conn.commit()
     conn.close()
 
+def add_private_message_to_db(user_id, chat_partner_id, user_message, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+    print(user_id, chat_partner_id, user_message, time)
+
+    cursor.execute('''
+        INSERT INTO private_messages (sender_id, receiver_id, message, sent_at)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, chat_partner_id, user_message, time))
+
+    conn.commit()
+    conn.close()
+
 def render_messages(offset, limit):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -269,6 +282,39 @@ def render_messages(offset, limit):
 
     conn.close()
     
+    return messages
+
+def render_messages_private_chat(current_user_id, chat_partner_id, limit, offset):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+    
+    query = '''
+        SELECT 
+            private_messages.id,
+            sender.username AS sender_name,
+            receiver.username AS receiver_name,
+            private_messages.message,
+            private_messages.sent_at
+        FROM 
+            private_messages
+        JOIN 
+            users AS sender ON private_messages.sender_id = sender.id
+        JOIN 
+            users AS receiver ON private_messages.receiver_id = receiver.id
+        WHERE 
+            (private_messages.sender_id = ? AND private_messages.receiver_id = ?) 
+            OR (private_messages.sender_id = ? AND private_messages.receiver_id = ?)
+        ORDER BY 
+            private_messages.sent_at DESC,
+            private_messages.id DESC
+        LIMIT ? OFFSET ?;
+    '''
+    
+    cursor.execute(query, (current_user_id, chat_partner_id, chat_partner_id, current_user_id, limit, offset))
+    messages = cursor.fetchall()
+
+    conn.close()
+    print(messages)
     return messages
 
 def get_status_edited_or_not(message_id):
@@ -316,6 +362,21 @@ def get_message_id(user_id, time, message):
 
     return message[0]
 
+def get_private_message_id(user_id, chat_partner_id, user_message, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute(
+        'SELECT id FROM private_messages WHERE sender_id = ? AND receiver_id = ? AND sent_at = ? AND message = ?',
+        (user_id, chat_partner_id, time, user_message)
+    )
+
+    message = cursor.fetchone()
+    # print(message)
+    conn.close()
+
+    return message[0]
+
 def edit_new_user_message(message_id, message):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -329,14 +390,24 @@ def edit_new_user_message(message_id, message):
     conn.commit()
     conn.close()
 
-def add_message_with_reply_to_db(user_id, messageAnswer, messageTextId, time):
+def add_message_with_reply_to_db(user_id, messageAnswer, messageTextId, time, chat_status, chat_partner_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute('''
-        INSERT INTO global_chat (sender_id, message, sent_at, reply_to)
-        VALUES (?, ?, ?, ?)
-    ''', (user_id, messageAnswer, time, messageTextId))
+    
+    if chat_status == "global_chat":
+        query = f'''
+            INSERT INTO {chat_status} (sender_id, message, sent_at, reply_to)
+            VALUES (?, ?, ?, ?)
+        '''
+        cursor.execute(query, (user_id, messageAnswer, time, messageTextId))
+    
+    elif chat_status == "private_messages":
+        query = f'''
+            INSERT INTO {chat_status} (sender_id, receiver_id, message, sent_at, reply_to)
+            VALUES (?, ?, ?, ?, ?)
+        '''
+        cursor.execute(query, (user_id, chat_partner_id, messageAnswer, time, messageTextId))
 
     conn.commit()
     conn.close()
