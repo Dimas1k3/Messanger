@@ -3,10 +3,13 @@ import smtplib
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import secrets
 
 from data import banned_words, numbers, login_symbols, password_symbols, common_weak_passwords
 from data import sender_email, sender_password, smtp_port, smtp_server
+
+from db import (
+    get_status_edited_or_not, get_user_id_by_message_id, get_user_nickname
+)
 
 def validate_username(user_login):
     if len(user_login) < 3:
@@ -116,11 +119,6 @@ def send_verification_code(recipient_email):
     
     return code
 
-def create_token():
-    token = secrets.token_hex(32)
-
-    return token
-
 def parse_html_text(message):
     lst = []
     r = len(message) - 1
@@ -139,3 +137,22 @@ def parse_html_text(message):
     text = ''.join(lst)
     
     return text
+
+def process_messages(messages):
+    data_as_lists = [list(message) for message in messages]
+
+    for lst in data_as_lists:
+        if lst[-2] is None and lst[-1] is None:
+            edited = get_status_edited_or_not(message_id=lst[0])
+            lst.append(None)
+            lst.append(edited)
+            continue
+
+        user_id = get_user_id_by_message_id(message_id=lst[-2])
+        nickname = get_user_nickname(user_id)
+        lst.append(nickname)
+
+        edited = get_status_edited_or_not(message_id=lst[0])
+        lst.append(edited)
+
+    return data_as_lists
