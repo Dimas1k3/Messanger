@@ -18,7 +18,8 @@ from db import (
     add_message_with_reply_to_db, get_user_id_by_message_id,
     get_status_edited_or_not, find_message_id_by_text,
     delete_expired_tokens, get_all_nicknames,
-    verify_session_token_by_id
+    verify_session_token_by_id, render_messages_private_chat,
+    add_private_message_to_db, get_private_message_id
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -32,14 +33,14 @@ cursor.execute("PRAGMA foreign_keys = ON")
 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        verification_code TEXT,
-        code_created_at DATETIME,
-        code_deleted_at DATETIME,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    verification_code TEXT,
+    code_created_at DATETIME,
+    code_deleted_at DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 ''')
 
@@ -62,6 +63,8 @@ cursor.execute('''
     receiver_id INTEGER NOT NULL,
     message TEXT NOT NULL,
     sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reply_to INTEGER REFERENCES private_messages(id),
+    edited BOOLEAN NOT NULL DEFAULT 0,  -- 0 = не редактировано, 1 = отредактировано
     FOREIGN KEY (sender_id) REFERENCES users(id),
     FOREIGN KEY (receiver_id) REFERENCES users(id)
     )
@@ -348,6 +351,33 @@ def process_user_message():
     
     return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime, "fullTime": time, "messageId": message_id })
 
+@app.route("/private_user_message", methods=["POST"])
+def process_private_user_message():    
+    token = request.headers.get("Authorization")
+    
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+    user_id = user[1]
+
+    data = request.get_json()
+    user_message = data.get("message")
+    chat_partner_id = data.get("chatPartnerId")
+    time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
+
+    if not user_message:
+        return jsonify({"success": False, "error": "Сообщение пустое"}), 400
+    
+    nickname = get_user_nickname(user_id)
+    add_private_message_to_db(user_id, chat_partner_id, user_message, time)
+    message_id = get_private_message_id(user_id, chat_partner_id, user_message, time)
+    showTime = time[:-3] 
+    
+    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime, "fullTime": time, "messageId": message_id })
+
 @app.route("/delete-message-global-chat", methods=["DELETE"])
 def delete_user_message():
     data = request.get_json() 
@@ -410,7 +440,7 @@ def edit_user_message():
 
     return jsonify({'success': True}), 200
 
-@app.route("/reply-message-global-chat", methods=["POST"])
+@app.route("/reply-message-chat", methods=["POST"])
 def reply_to_message():
     data = request.get_json()
     token = data.get("token")
@@ -418,6 +448,8 @@ def reply_to_message():
     repliedMessage = data.get("repliedMessage")
     repliedMessageNickname = data.get("repliedMessageNickname")
     message_id = data.get("messageId")
+    chat_status = data.get("ChatStatus")
+    chat_partner_id = data.get("chatPartnerId")
 
     if not token:
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
@@ -435,7 +467,7 @@ def reply_to_message():
     if user[0] == False:
         return jsonify({"success": False, "message": "Токен невалидный"}), 400
 
-    add_message_with_reply_to_db(user[1], answerMessage, message_id, time)
+    add_message_with_reply_to_db(user[1], answerMessage, message_id, time, chat_status, chat_partner_id)
     nickname = get_user_nickname(user[1])
     showTime = time[:-3] 
 
@@ -460,6 +492,27 @@ def find_message_global_chat():
         return jsonify({"success": False, "message": "Ничего не найдено"}), 400
     
     return jsonify({"success": True, "message_id": message_id,})
+
+@app.route("/load-private-chat", methods=["POST"])
+def load_private_chat():
+    data = request.get_json()
+    current_user_id = data.get("currentUserId")
+    chat_partner_id = data.get("chatPartnerId")
+    offset = int(data.get("offset", 0))  
+    limit = 20
+    
+    offset = int(request.args.get('offset', 0))
+    limit = 20
+
+    if not current_user_id:
+        return jsonify({"success": False, "message": "Юзер отсутствует"}), 400
+
+    if not chat_partner_id:
+        return jsonify({"success": False, "message": "Партнер отсутствует"}), 400
+
+    messages = render_messages_private_chat(current_user_id, chat_partner_id, limit, offset)
+
+    return jsonify({"success": True, "messages": messages})
 
 if __name__ == "__main__":
     app.run(debug=True)
