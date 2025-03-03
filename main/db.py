@@ -1,7 +1,11 @@
 import sqlite3
 from datetime import datetime, timedelta
+import secrets
 
-from handlers import create_token
+def create_token():
+    token = secrets.token_hex(32)
+
+    return token
 
 def check_username_avaibility(username):
     conn = sqlite3.connect('messanger.db')

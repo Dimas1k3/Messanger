@@ -5,7 +5,8 @@ from datetime import datetime
 
 from handlers import (
     validate_username, validate_password, validate_email, 
-    hash_password, send_verification_code, parse_html_text
+    hash_password, send_verification_code, parse_html_text,
+    process_messages
 )
 
 from db import (
@@ -93,65 +94,20 @@ def main_page():
     delete_expired_tokens()
 
     offset = int(request.args.get('offset', 0))
-    # print(f"Полученный offset: {offset} в /main")
-
     limit = 20
     messages = render_messages(offset, limit)
+    processed_messages = process_messages(messages)
 
-    data_as_lists = []
-    for message in messages:
-        data_as_lists.append(list(message))
-
-    for lst in data_as_lists:
-        if lst[-2] is None and lst[-1] is None:
-            edited = get_status_edited_or_not(message_id=lst[0])
-            
-            lst.append(None)
-            lst.append(edited)
-            continue
-        
-        user_id = get_user_id_by_message_id(message_id=lst[-2])
-        nickname = get_user_nickname(user_id)
-        lst.append(nickname)
-
-        edited = get_status_edited_or_not(message_id=lst[0])
-        lst.append(edited)
-    
-    messages = data_as_lists
-    # print(messages)
-
-    return render_template("main_page.html", messages=messages)
+    return render_template("main_page.html", messages=processed_messages)
 
 @app.route('/load-messages', methods=['GET'])
 def load_messages():
     offset = int(request.args.get('offset', 0))
-    # print(f"Полученный offset: {offset} в /main")
-
     limit = 20
     messages = render_messages(offset, limit)
+    processed_messages = process_messages(messages)
 
-    data_as_lists = []
-    for message in messages:
-        data_as_lists.append(list(message))
-
-    for lst in data_as_lists:
-        if lst[-2] is None and lst[-1] is None:
-            edited = get_status_edited_or_not(message_id=lst[0])
-            
-            lst.append(None)
-            lst.append(edited)
-            continue
-        
-        user_id = get_user_id_by_message_id(message_id=lst[-2])
-        nickname = get_user_nickname(user_id)
-        lst.append(nickname)
-
-        edited = get_status_edited_or_not(message_id=lst[0])
-        lst.append(edited)
-    
-    messages = data_as_lists
-
-    return jsonify(messages)
+    return jsonify(processed_messages)
 
 @app.route("/load-user-list", methods=["POST"])
 def load_user_list():
@@ -511,7 +467,6 @@ def load_private_chat():
         return jsonify({"success": False, "message": "Партнер отсутствует"}), 400
 
     messages = render_messages_private_chat(current_user_id, chat_partner_id, limit, offset)
-
     return jsonify({"success": True, "messages": messages})
 
 if __name__ == "__main__":
