@@ -464,7 +464,7 @@ def load_private_chat():
         return jsonify({"success": False, "message": "Юзер отсутствует"}), 400
 
     if not chat_partner_id:
-        return jsonify({"success": False, "message": "Партнер отсутствует"}), 400
+        return jsonify({"success": False,  "message": "Партнер отсутствует"}), 400
 
     messages = render_messages_private_chat(current_user_id, chat_partner_id, limit, offset)
     return jsonify({"success": True, "messages": messages})
