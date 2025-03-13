@@ -6,7 +6,7 @@ from datetime import datetime
 from handlers import (
     validate_username, validate_password, validate_email, 
     hash_password, send_verification_code, parse_html_text,
-    process_messages
+    process_messages, process_private_messages
 )
 
 from db import (
@@ -104,9 +104,18 @@ def main_page():
 def load_messages():
     offset = int(request.args.get('offset', 0))
     limit = 20
-    messages = render_messages(offset, limit)
-    processed_messages = process_messages(messages)
+    private_chat_status = request.args.get('privateChat') == 'true'
 
+    if private_chat_status:
+        current_user_id = request.args.get('userId')
+        chat_partner_id = request.args.get('partnerId')
+        messages = render_messages_private_chat(current_user_id, chat_partner_id, limit, offset)
+        processed_private_messages = process_private_messages(messages)
+        return jsonify(processed_private_messages)
+        
+    messages = render_messages(offset, limit)
+    print(messages)
+    processed_messages = process_messages(messages)
     return jsonify(processed_messages)
 
 @app.route("/load-user-list", methods=["POST"])
