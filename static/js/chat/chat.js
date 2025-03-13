@@ -1,5 +1,7 @@
 import { getUserProfileList } from "./user_list.js";
 
+import { handleArrowClick } from "./message_controls.js";
+
 const messageInput = document.getElementById("message-input");
 const messagesContainer = document.getElementById("messages-container");
 let currentOffset = parseInt(document.getElementById("current-offset").value, 10);
@@ -158,6 +160,114 @@ function renderMessages(messages) {
     document.getElementById("current-offset").value = currentOffset;
 }
 
+function openPrivateChat(currentUserId, chatPartnerId) {
+    currentOffset = 0;
+    window.PrivateChatStatus = true;
+    
+    const messageList = messagesContainer.querySelectorAll('.message'); 
+    console.info(messageList);
+    messageList.forEach(message => message.remove());
+
+    messagesContainer.innerHTML = "";
+
+    // console.log("Начинаем загрузку чата");
+    // console.trace("Вызов openPrivateChat");
+
+    fetch("/load-private-chat", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({currentUserId, chatPartnerId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        localStorage.setItem("user_id", currentUserId);
+        localStorage.setItem("partner_id", chatPartnerId);
+
+        console.info(data);
+        const messagesContainer = document.getElementById("messages-container");
+
+        data.messages.reverse().forEach(msg => {
+            const messageId = msg[0];
+            const senderNickname = msg[1];
+            const receiverNickname = msg[2];
+            const messageTextContent = msg[3];
+            const messageTime = msg[4];
+    
+            const newMessage = document.createElement("div");
+            newMessage.className = "message";
+    
+            const messageHeader = document.createElement("div");
+            messageHeader.className = "message-header";
+    
+            const nicknameElement = document.createElement("span");
+            nicknameElement.className = "nickname";
+            nicknameElement.textContent = senderNickname;
+    
+            const timeElement = document.createElement("span");
+            timeElement.className = "time"; 
+            timeElement.textContent = messageTime;
+    
+            const fullTimeElement = document.createElement("div");
+            fullTimeElement.className = "full-time";
+            fullTimeElement.textContent = messageTime; 
+            fullTimeElement.style.display = "none"; 
+    
+            const messageText = document.createElement("div");
+            messageText.className = "message-text";
+            messageText.textContent = messageTextContent;
+    
+            const messageIdElement = document.createElement("div");
+            messageIdElement.className = "message-id";
+            messageIdElement.textContent = messageId;
+            messageIdElement.style.display = "none";
+    
+            newMessage.appendChild(messageHeader);
+            messageHeader.appendChild(nicknameElement);
+            messageHeader.appendChild(timeElement);
+            newMessage.appendChild(fullTimeElement);
+            newMessage.appendChild(messageText);
+            newMessage.appendChild(messageIdElement); 
+    
+            messagesContainer.appendChild(newMessage);
+        });
+    
+        messageInput.value = "";
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        const messageControlPanel = document.createElement("div");
+        messageControlPanel.id = "message-control";
+        messageControlPanel.style.display = "none";
+
+        messageControlPanel.innerHTML = `
+            <!-- Стрелочка -->
+            <svg id="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 4.146a.5.5 0 0 1 0 .708L3.707 7H14.5a.5.5 0 0 1 0 1H3.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"/>
+            </svg>
+
+            <!-- Карандаш -->
+            <svg id="pencil-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706l-13.5 13.5a.5.5 0 0 1-.168.11l-4 1a.5.5 0 0 1-.65-.65l1-4a.5.5 0 0 1 .11-.168l13.5-13.5a.5.5 0 0 1 .706 0zM13.085 3 4 12.085V13h.915L14 3.915 13.085 3z"/>
+            </svg>
+
+            <!-- Мусорка -->
+            <svg id="bin-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5v-7zm1 .5v6h1v-6H6zm3 0v6h1v-6H9z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9.5a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 3 13.5V4H2.5a1 1 0 1 1 0-2H5.707l1-1h3.586l1 1H13a1 1 0 0 1 1 1zM3 4v9.5a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5V4H3z"/>
+            </svg>
+        `;
+
+        messagesContainer.appendChild(messageControlPanel);
+
+        wait(300).then(() => {
+            getMessagesDiv(); 
+        });
+
+        handleArrowClick(chatPartnerId);
+    });
+}
+
 function spawnMessage(data) {
     const messagesContainer = document.getElementById("messages-container");
 
@@ -203,8 +313,13 @@ function spawnMessage(data) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function loadMoreMessages() {
-    fetch(`/load-messages?offset=${currentOffset}`)
+function loadMoreMessages(PrivateChatStatus, userId, partnerId) {
+    const url = "/load-messages?offset=" + currentOffset +
+            "&privateChat=" + PrivateChatStatus +
+            "&userId=" + userId +
+            "&partnerId=" + partnerId;
+    
+    fetch(url)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Ошибка загрузки: ${response.status}`);
@@ -357,21 +472,23 @@ document.addEventListener("DOMContentLoaded", function () {
         getMessagesDiv(); 
     });
 
+    messageInput.value = "";
+
     lastHoveredMessage = null;
 
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     messagesContainer.addEventListener("scroll", function () {
         if (messageControlPanel.style.display === 'block') {
-            messageControlPanel.style.display = 'none'
+            messageControlPanel.style.display = 'none';
         }
-        
-        if (messagesContainer.scrollTop === 0 && PrivateChatStatus === false ) { 
-            loadMoreMessages(); 
+    
+        if (messagesContainer.scrollTop === 0) { 
+            const userId = localStorage.getItem("user_id");
+            const chatPartnerId = localStorage.getItem("partner_id");
+            loadMoreMessages(PrivateChatStatus, userId, chatPartnerId);
             let lastHoveredMessage = null;
-            wait(300).then(() => {
-                getMessagesDiv(); 
-            });
+            wait(300).then(getMessagesDiv);
         }
     });
 
@@ -491,5 +608,6 @@ export {
     scrollToMessage,
     renderMessages,
     spawnMessage,
-    loadMoreMessages
+    loadMoreMessages,
+    openPrivateChat
 };

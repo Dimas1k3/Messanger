@@ -156,3 +156,6 @@ def process_messages(messages):
         lst.append(edited)
 
     return data_as_lists
+
+def process_private_messages(messages):
+    print(messages)
