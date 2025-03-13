@@ -64,6 +64,13 @@
 
     <div id="data-container" data-messages='{{ messages|tojson|safe }}'></div>
 
-    <script src="../static/js/chat/send_message.js"></script>
+    <!-- <script src="../static/js/chat/send_message.js"></script> -->
+
+    <script type="module" src="/static/js/chat/chat.js"></script>
+    
+    <script type="module" src="/static/js/chat/message_controls.js"></script>
+    
+    <script type="module" src="/static/js/chat/user_list.js"></script>
+
 </body>
 </html>
