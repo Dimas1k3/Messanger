@@ -6,11 +6,11 @@ from datetime import datetime
 from handlers import (
     validate_username, validate_password, validate_email, 
     hash_password, send_verification_code, parse_html_text,
-    process_messages, process_private_messages
+    process_messages
 )
 
 from db import (
-    check_username_avaibility, check_email_avaibility, check_code, 
+    check_username_availability, check_email_availability, check_code, 
     add_code_to_db, check_hash_pass, add_user_password, 
     update_user_password, get_user_id, create_session_token,
     verify_session_token, get_user_nickname, add_message_to_db,
@@ -109,13 +109,13 @@ def load_messages():
     if private_chat_status:
         current_user_id = request.args.get('userId')
         chat_partner_id = request.args.get('partnerId')
+
         messages = render_messages_private_chat(current_user_id, chat_partner_id, limit, offset)
-        processed_private_messages = process_private_messages(messages)
-        return jsonify(processed_private_messages)
-        
-    messages = render_messages(offset, limit)
-    print(messages)
-    processed_messages = process_messages(messages)
+    else:
+        messages = render_messages(offset, limit)
+
+    processed_messages = process_messages(messages, private_chat_status)
+
     return jsonify(processed_messages)
 
 @app.route("/load-user-list", methods=["POST"])
@@ -169,7 +169,7 @@ def process_reset_password():
     if not email:
         return jsonify({"success": False, "message": "Введите вашу почту"}), 400
     
-    elif check_email_avaibility(email) == True:
+    elif check_email_availability(email) == True:
         return jsonify({"success": False, "message": "Такой почты не существует"}), 400
     
     code = send_verification_code(email)
@@ -257,10 +257,10 @@ def process_registration():
             return jsonify({"success": False, "message": [check[1], check[2]]}), 400
     
 
-    if check_email_avaibility(email) == False:
+    if check_email_availability(email) == False:
         return jsonify({"success": False, "message": ["emailGroup", "Почта занята"]}), 400
     
-    if check_username_avaibility(username) == False:
+    if check_username_availability(username) == False:
         return jsonify({"success": False, "message": ["usernameGroup", "Юзернейм занят"]}), 400
     
     hash_pass = hash_password(password)
@@ -276,7 +276,7 @@ def login():
     if not username:
         return jsonify({"success": False, "message": "Введите ваш логин"}), 400
     
-    elif check_username_avaibility(username) == True:
+    elif check_username_availability(username) == True:
         return jsonify({"success": False, "message": "Неверный логин"}), 400
     
     elif not password:

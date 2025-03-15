@@ -138,12 +138,12 @@ def parse_html_text(message):
     
     return text
 
-def process_messages(messages):
+def process_messages(messages, private_chat_status):
     data_as_lists = [list(message) for message in messages]
 
     for lst in data_as_lists:
         if lst[-2] is None and lst[-1] is None:
-            edited = get_status_edited_or_not(message_id=lst[0])
+            edited = get_status_edited_or_not(message_id=lst[0], private_chat_status=private_chat_status)
             lst.append(None)
             lst.append(edited)
             continue
@@ -156,6 +156,3 @@ def process_messages(messages):
         lst.append(edited)
 
     return data_as_lists
-
-def process_private_messages(messages):
-    print(messages)

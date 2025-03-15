@@ -7,7 +7,7 @@ def create_token():
 
     return token
 
-def check_username_avaibility(username):
+def check_username_availability(username):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
@@ -21,7 +21,7 @@ def check_username_avaibility(username):
     else:
         return False
     
-def check_email_avaibility(email):
+def check_email_availability(email):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
@@ -298,13 +298,17 @@ def render_messages_private_chat(current_user_id, chat_partner_id, limit, offset
             sender.username AS sender_name,
             receiver.username AS receiver_name,
             private_messages.message,
-            private_messages.sent_at
+            private_messages.sent_at,
+            private_messages.reply_to,
+            parent.message AS replied_message  -- Берем текст родительского сообщения
         FROM 
             private_messages
         JOIN 
             users AS sender ON private_messages.sender_id = sender.id
         JOIN 
             users AS receiver ON private_messages.receiver_id = receiver.id
+        LEFT JOIN 
+            private_messages AS parent ON private_messages.reply_to = parent.id  -- Связываем сообщения по reply_to
         WHERE 
             (private_messages.sender_id = ? AND private_messages.receiver_id = ?) 
             OR (private_messages.sender_id = ? AND private_messages.receiver_id = ?)
@@ -318,10 +322,10 @@ def render_messages_private_chat(current_user_id, chat_partner_id, limit, offset
     messages = cursor.fetchall()
 
     conn.close()
-    print(messages)
+    # print(messages)
     return messages
 
-def get_status_edited_or_not(message_id):
+def get_status_edited_or_not(message_id, private_chat_status):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
