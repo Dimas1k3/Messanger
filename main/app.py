@@ -96,7 +96,7 @@ def main_page():
     offset = int(request.args.get('offset', 0))
     limit = 20
     messages = render_messages(offset, limit)
-    processed_messages = process_messages(messages)
+    processed_messages = process_messages(messages, private_chat_status=None)
 
     return render_template("main_page.html", messages=processed_messages)
 
@@ -115,7 +115,7 @@ def load_messages():
         messages = render_messages(offset, limit)
 
     processed_messages = process_messages(messages, private_chat_status)
-
+    print(processed_messages[0])
     return jsonify(processed_messages)
 
 @app.route("/load-user-list", methods=["POST"])

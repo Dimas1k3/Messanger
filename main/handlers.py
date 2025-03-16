@@ -146,13 +146,16 @@ def process_messages(messages, private_chat_status):
             edited = get_status_edited_or_not(message_id=lst[0], private_chat_status=private_chat_status)
             lst.append(None)
             lst.append(edited)
+            lst.append(private_chat_status)
             continue
 
         user_id = get_user_id_by_message_id(message_id=lst[-2])
         nickname = get_user_nickname(user_id)
         lst.append(nickname)
 
-        edited = get_status_edited_or_not(message_id=lst[0])
+        edited = get_status_edited_or_not(message_id=lst[0], private_chat_status=private_chat_status)
         lst.append(edited)
+        lst.append(private_chat_status)
 
+    # print(data_as_lists)
     return data_as_lists
