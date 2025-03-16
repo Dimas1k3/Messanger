@@ -326,10 +326,15 @@ def render_messages_private_chat(current_user_id, chat_partner_id, limit, offset
     return messages
 
 def get_status_edited_or_not(message_id, private_chat_status):
+    if private_chat_status is None or private_chat_status is False:
+        table = 'global_chat'
+    else:
+        table = 'private_messages'
+    
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute('SELECT edited FROM global_chat WHERE id = ?', (message_id,))
+    cursor.execute(f'SELECT edited FROM {table} WHERE id = ?', (message_id,))
     row = cursor.fetchone()
 
     conn.close()
