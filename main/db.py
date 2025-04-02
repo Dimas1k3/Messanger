@@ -127,9 +127,10 @@ def get_user_id_by_message_id(message_id):
     cursor.execute('SELECT * FROM global_chat WHERE id = ?', (message_id,))
     user = cursor.fetchone()
 
-    conn.close()
+    if user is None:
+        return None 
 
-    return user[1]
+    return user[1] 
 
 def create_session_token(user_id):
     conn = sqlite3.connect('messanger.db')
@@ -190,19 +191,26 @@ def delete_expired_tokens():
     conn.commit()
     conn.close()
 
-def get_user_id_from_message(user_id, message, time):
+def get_user_id_from_message(user_id, message, time, chat_status, chat_partner_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute(
-        'SELECT * FROM global_chat WHERE sender_id = ? AND message = ? AND sent_at = ?',
-        (user_id, message, time)
-    )
+    if chat_status == 'global_chat':
+        query = 'SELECT * FROM global_chat WHERE sender_id = ? AND message = ? AND sent_at = ?'
+        params = (user_id, message, time)
+    else:
+        query = 'SELECT * FROM private_messages WHERE sender_id = ? AND receiver_id = ? AND message = ? AND sent_at = ?'
+        params = (user_id, chat_partner_id, message, time)
 
+    cursor.execute(query, params)
     message = cursor.fetchone()
+    
     print(message)
     conn.close()
-
+    
+    if not message:
+        return None
+    
     return message[1]
 
 def get_user_nickname(user_id):
@@ -214,7 +222,10 @@ def get_user_nickname(user_id):
 
     conn.close()
 
-    return user[1]
+    if user is None:
+        return None 
+
+    return user[1] 
 
 def get_all_nicknames():
     user_list = []
@@ -281,6 +292,7 @@ def render_messages(offset, limit):
             global_chat.id DESC
         LIMIT ? OFFSET ?;
     '''
+
     cursor.execute(query, (limit, offset))
     messages = cursor.fetchall() 
 
@@ -317,7 +329,7 @@ def render_messages_private_chat(current_user_id, chat_partner_id, limit, offset
             private_messages.id DESC
         LIMIT ? OFFSET ?;
     '''
-    
+
     cursor.execute(query, (current_user_id, chat_partner_id, chat_partner_id, current_user_id, limit, offset))
     messages = cursor.fetchall()
 
@@ -363,7 +375,7 @@ def get_message_id(user_id, time, message):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    print(user_id, time, message)
+    # print(user_id, time, message)
     cursor.execute(
         'SELECT id FROM global_chat WHERE sender_id = ? AND sent_at = ? AND message = ?',
         (user_id, time, message)
@@ -378,6 +390,7 @@ def get_message_id(user_id, time, message):
 def get_private_message_id(user_id, chat_partner_id, user_message, time):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
+    print(user_id, chat_partner_id, user_message, time)
 
     cursor.execute(
         'SELECT id FROM private_messages WHERE sender_id = ? AND receiver_id = ? AND sent_at = ? AND message = ?',
@@ -385,20 +398,27 @@ def get_private_message_id(user_id, chat_partner_id, user_message, time):
     )
 
     message = cursor.fetchone()
-    # print(message)
+    print(message)
     conn.close()
 
     return message[0]
 
-def edit_new_user_message(message_id, message):
+def edit_new_user_message(message_id, message, chat_status, chat_partner_id):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute('''
-        UPDATE global_chat 
-        SET message = ?, edited = ? 
-        WHERE id = ?
-    ''', (message, 1, message_id))
+    if chat_status == "private_messages":
+        cursor.execute('''
+            UPDATE private_messages 
+            SET message = ?, edited = ? 
+            WHERE id = ? AND receiver_id = ?
+        ''', (message, 1, message_id, chat_partner_id))
+    else:
+        cursor.execute('''
+            UPDATE global_chat 
+            SET message = ?, edited = ? 
+            WHERE id = ?
+        ''', (message, 1, message_id))
 
     conn.commit()
     conn.close()
@@ -407,7 +427,6 @@ def add_message_with_reply_to_db(user_id, messageAnswer, messageTextId, time, ch
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    
     if chat_status == "global_chat":
         query = f'''
             INSERT INTO {chat_status} (sender_id, message, sent_at, reply_to)

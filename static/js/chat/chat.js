@@ -1,6 +1,6 @@
 import { getUserProfileList } from "./user_list.js";
 
-import { handleArrowClick } from "./message_controls.js";
+import { handleArrowClick, handleDeleteClick, handleEditClick } from "./message_controls.js";
 
 const messageInput = document.getElementById("message-input");
 const messagesContainer = document.getElementById("messages-container");
@@ -41,8 +41,9 @@ function getMessagesDiv() {
         // console.log(`Message ${index}:`, message.innerHTML);
 
         message.addEventListener('mouseenter', () => {
-            lastHoveredMessage = message;
-            
+            // lastHoveredMessage = message;
+            setLastHoveredMessage(message);
+
             message.style.backgroundColor = '#e0e0e0';
             messageControlPanel.style.display = 'block';
 
@@ -72,88 +73,111 @@ function getMessagesDiv() {
 }
 
 function getLastHoveredMessage() {
-    return lastHoveredMessage ? lastHoveredMessage.innerHTML : null;
+    return lastHoveredMessage;
+}
+
+function setLastHoveredMessage(value) {
+    lastHoveredMessage = value;
 }
 
 function getMessageId(element) {
     return element?.closest('.message')?.getAttribute('data-message-id') || null;
 }
 
-function renderMessages(messages) {
-    fetch(`/load-messages?offset=${currentOffset}`);
-    // console.log(currentOffset);
+function createMessageElement(parsedMessage, messagesContainer, prepend) {
+    const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = parsedMessage;
+    const trimmedTimestamp = timestamp.slice(0, -3);
     
-    messages.reverse().forEach(message => {
-        const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;  
-        const trimmedTimestamp = timestamp.slice(0, -3);
-        const messagesContainer = document.getElementById("messages-container");
+    const newMessage = document.createElement("div");
+    newMessage.className = "message";
     
-        const newMessage = document.createElement("div");
-        newMessage.className = "message";
+    const messageHeader = document.createElement("div");
+    messageHeader.className = "message-header";
     
-        const messageHeader = document.createElement("div");
-        messageHeader.className = "message-header";
+    const nicknameElement = document.createElement("span");
+    nicknameElement.className = "nickname";
+    nicknameElement.textContent = nickname;
     
-        const nicknameElement = document.createElement("span");
-        nicknameElement.className = "nickname";
-        nicknameElement.textContent = nickname;
+    const timeElement = document.createElement("span");
+    timeElement.className = "time"; 
+    timeElement.textContent = trimmedTimestamp;
     
-        const timeElement = document.createElement("span");
-        timeElement.className = "time"; 
-        timeElement.textContent = trimmedTimestamp;
+    const fullTimeElement = document.createElement("div");
+    fullTimeElement.className = "full-time";
+    fullTimeElement.textContent = timestamp;
+    fullTimeElement.style.display = "none"; 
     
-        const fullTimeElement = document.createElement("div");
-        fullTimeElement.className = "full-time";
-        fullTimeElement.textContent = timestamp;
-        fullTimeElement.style.display = "none"; 
+    const messageText = document.createElement("div");
+    messageText.className = "message-text";
+    messageText.textContent = text;
     
-        const messageText = document.createElement("div");
-        messageText.className = "message-text";
-        messageText.textContent = text;
-    
-        const messageIdElement = document.createElement("div");
-        messageIdElement.className = "message-id";
-        messageIdElement.textContent = id;
-        messageIdElement.style.display = "none";
+    const messageIdElement = document.createElement("div");
+    messageIdElement.className = "message-id";
+    messageIdElement.textContent = id;
+    messageIdElement.style.display = "none";
 
-        if (editedStatus == 1) {
-            const editedLabel = document.createElement("span");
-            editedLabel.className = "edited-label";
-            editedLabel.textContent = " (отредактировано)";
-            editedLabel.style.color = "gray";
-            editedLabel.style.fontSize = "12px";
-            editedLabel.style.marginLeft = "5px";
-            timeElement.appendChild(editedLabel);
-        }
+    if (editedStatus == 1) {
+        const editedLabel = document.createElement("span");
+        editedLabel.className = "edited-label";
+        editedLabel.textContent = " (отредактировано)";
+        editedLabel.style.color = "gray";
+        editedLabel.style.fontSize = "12px";
+        editedLabel.style.marginLeft = "5px";
+        timeElement.appendChild(editedLabel);
+ }
     
-        if (repliedMessage) {
-            const replyContainer = document.createElement("div");
-            replyContainer.className = "reply-container";
-            replyContainer.style.borderLeft = "3px solid gray";
-            replyContainer.style.padding = "5px 10px";
-            replyContainer.style.marginBottom = "5px";
-            replyContainer.style.background = "#f0f0f0";
-            replyContainer.style.borderRadius = "5px";
-            replyContainer.style.fontSize = "13px";
-            replyContainer.style.color = "#555";
-            replyContainer.style.fontStyle = "italic";
+    if (repliedMessage) {
+        const replyContainer = document.createElement("div");
+        replyContainer.className = "reply-container";
+        replyContainer.style.borderLeft = "3px solid gray";
+        replyContainer.style.padding = "5px 10px";
+        replyContainer.style.marginBottom = "5px";
+        replyContainer.style.background = "#f0f0f0";
+        replyContainer.style.borderRadius = "5px";
+        replyContainer.style.fontSize = "13px";
+        replyContainer.style.color = "#555";
+        replyContainer.style.fontStyle = "italic";
     
-            const replyText = document.createElement("div");
-            replyText.className = "reply-text";
-            replyText.textContent = `↳ "${repliedMessage}"` + ' от ' + repliedMessageNickname; 
+        const replyText = document.createElement("div");
+        replyText.className = "reply-text";
+        replyText.textContent = `↳ "${repliedMessage}"` + ' от ' + repliedMessageNickname; 
     
-            replyContainer.appendChild(replyText);
-            newMessage.appendChild(replyContainer);
-        }
+        replyContainer.appendChild(replyText);
+        newMessage.appendChild(replyContainer);
+    }
     
-        newMessage.appendChild(messageHeader);
-        messageHeader.appendChild(nicknameElement);
-        messageHeader.appendChild(timeElement);
-        newMessage.appendChild(fullTimeElement); 
-        newMessage.appendChild(messageText);
-        newMessage.appendChild(messageIdElement); 
+    newMessage.appendChild(messageHeader);
+    messageHeader.appendChild(nicknameElement);
+    messageHeader.appendChild(timeElement);
+    newMessage.appendChild(fullTimeElement); 
+    newMessage.appendChild(messageText);
+    newMessage.appendChild(messageIdElement); 
     
+    if (!prepend) {
+        messagesContainer.prepend(newMessage);
+    } else {
         messagesContainer.appendChild(newMessage);
+    }
+};
+
+function renderMessages(messages) {
+    console.info("renderMessages")
+    const messagesContainer = document.getElementById("messages-container");
+    
+    messages.forEach(message => {
+        let parsedMessage;
+        let prepend = false;
+        const PrivateChatStatus = message.at(-1);
+    
+        if (PrivateChatStatus) {
+            const [id, nickname, partnerNickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
+            parsedMessage = [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus];
+        } else {
+            const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
+            parsedMessage = [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus];
+        }
+
+        createMessageElement(parsedMessage, messagesContainer, prepend);
     });        
 
     currentOffset += 20
@@ -161,8 +185,10 @@ function renderMessages(messages) {
 }
 
 function openPrivateChat(currentUserId, chatPartnerId) {
-    currentOffset = 0;
+    console.info("openPrivateChat")
     window.PrivateChatStatus = true;
+    currentOffset = 0;
+    document.getElementById("current-offset").value = currentOffset;
     
     const messageList = messagesContainer.querySelectorAll('.message'); 
     console.info(messageList);
@@ -188,53 +214,31 @@ function openPrivateChat(currentUserId, chatPartnerId) {
         console.info(data);
         const messagesContainer = document.getElementById("messages-container");
 
-        data.messages.reverse().forEach(msg => {
+        data.messages.forEach(msg => {
+            let parsedMessage;
+            let prepend = false;
+            
             const messageId = msg[0];
             const senderNickname = msg[1];
             const receiverNickname = msg[2];
             const messageTextContent = msg[3];
             const messageTime = msg[4];
-    
-            const newMessage = document.createElement("div");
-            newMessage.className = "message";
-    
-            const messageHeader = document.createElement("div");
-            messageHeader.className = "message-header";
-    
-            const nicknameElement = document.createElement("span");
-            nicknameElement.className = "nickname";
-            nicknameElement.textContent = senderNickname;
-    
-            const timeElement = document.createElement("span");
-            timeElement.className = "time"; 
-            timeElement.textContent = messageTime;
-    
-            const fullTimeElement = document.createElement("div");
-            fullTimeElement.className = "full-time";
-            fullTimeElement.textContent = messageTime; 
-            fullTimeElement.style.display = "none"; 
-    
-            const messageText = document.createElement("div");
-            messageText.className = "message-text";
-            messageText.textContent = messageTextContent;
-    
-            const messageIdElement = document.createElement("div");
-            messageIdElement.className = "message-id";
-            messageIdElement.textContent = messageId;
-            messageIdElement.style.display = "none";
-    
-            newMessage.appendChild(messageHeader);
-            messageHeader.appendChild(nicknameElement);
-            messageHeader.appendChild(timeElement);
-            newMessage.appendChild(fullTimeElement);
-            newMessage.appendChild(messageText);
-            newMessage.appendChild(messageIdElement); 
-    
-            messagesContainer.appendChild(newMessage);
+            const replyTo = msg[5];
+            const repliedMessage = msg[6];
+            const repliedMessageNickname = msg[7];
+            const editedStatus = msg[8];
+            console.info(editedStatus)
+
+            parsedMessage = [messageId, senderNickname, messageTextContent, messageTime, replyTo, repliedMessage, repliedMessageNickname, editedStatus];
+
+            createMessageElement(parsedMessage, messagesContainer, prepend);
         });
     
         messageInput.value = "";
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        currentOffset += data.messages.length;
+        document.getElementById("current-offset").value = currentOffset;
 
         const messageControlPanel = document.createElement("div");
         messageControlPanel.id = "message-control";
@@ -264,7 +268,11 @@ function openPrivateChat(currentUserId, chatPartnerId) {
             getMessagesDiv(); 
         });
 
-        handleArrowClick(chatPartnerId);
+        handleArrowClick(chatPartnerId, null);
+
+        handleEditClick(chatPartnerId);
+        
+        handleDeleteClick();
     });
 }
 
@@ -313,7 +321,26 @@ function spawnMessage(data) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+function processMessage(message) {
+    let parsedMessage;
+    let prepend = false;
+    const PrivateChatStatus = message.at(-1);
+
+    if (PrivateChatStatus) {
+        const [id, nickname, partnerNickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
+        parsedMessage = [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus];
+    } else {
+        const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
+        parsedMessage = [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus];
+    }
+
+    createMessageElement(parsedMessage, messagesContainer, prepend);
+}
+
+let isLoading = false;
+
 function loadMoreMessages(PrivateChatStatus, userId, partnerId) {
+
     const url = "/load-messages?offset=" + currentOffset +
             "&privateChat=" + PrivateChatStatus +
             "&userId=" + userId +
@@ -327,83 +354,24 @@ function loadMoreMessages(PrivateChatStatus, userId, partnerId) {
             return response.json(); 
         })
         .then(messages => {
+            if (messages.length === 0) {
+                return;
+            }
+           
             const messagesContainer = document.getElementById("messages-container");
 
             const currentScrollHeight = messagesContainer.scrollHeight;
             const currentScrollTop = messagesContainer.scrollTop;
             
-            messages.forEach(message => {
-                const [id, nickname, text, timestamp, replyTo, repliedMessage, repliedMessageNickname, editedStatus] = message;
-                const trimmedTimestamp = timestamp.slice(0, -3);
-                const messagesContainer = document.getElementById("messages-container");
-            
-                const newMessage = document.createElement("div");
-                newMessage.className = "message";
-            
-                const messageHeader = document.createElement("div");
-                messageHeader.className = "message-header";
-            
-                const nicknameElement = document.createElement("span");
-                nicknameElement.className = "nickname";
-                nicknameElement.textContent = nickname;
-            
-                const timeElement = document.createElement("span");
-                timeElement.className = "time";
-                timeElement.textContent = trimmedTimestamp;
-            
-                const fullTimeElement = document.createElement("div");
-                fullTimeElement.className = "full-time";
-                fullTimeElement.textContent = timestamp;
-                fullTimeElement.style.display = "none";
-            
-                const messageText = document.createElement("div");
-                messageText.className = "message-text";
-                messageText.textContent = text;
-            
-                const messageIdElement = document.createElement("div");
-                messageIdElement.className = "message-id";
-                messageIdElement.textContent = id;
-                messageIdElement.style.display = "none";
-
-                if (editedStatus == 1) {
-                    const editedLabel = document.createElement("span");
-                    editedLabel.className = "edited-label";
-                    editedLabel.textContent = " (отредактировано)";
-                    editedLabel.style.color = "gray";
-                    editedLabel.style.fontSize = "12px";
-                    editedLabel.style.marginLeft = "5px";
-                    timeElement.appendChild(editedLabel);
-                }
-            
-                if (replyTo && repliedMessage) {
-                    const replyContainer = document.createElement("div");
-                    replyContainer.className = "reply-container";
-                    replyContainer.style.borderLeft = "3px solid gray";
-                    replyContainer.style.padding = "5px 10px";
-                    replyContainer.style.marginBottom = "5px";
-                    replyContainer.style.background = "#f0f0f0";
-                    replyContainer.style.borderRadius = "5px";
-                    replyContainer.style.fontSize = "13px";
-                    replyContainer.style.color = "#555";
-                    replyContainer.style.fontStyle = "italic";
-            
-                    const replyText = document.createElement("div");
-                    replyText.className = "reply-text";
-                    replyText.textContent = `↳ "${repliedMessage}"` + ' от ' + repliedMessageNickname; 
-            
-                    replyContainer.appendChild(replyText);
-                    newMessage.appendChild(replyContainer);
-                }
-            
-                newMessage.appendChild(messageHeader);
-                messageHeader.appendChild(nicknameElement);
-                messageHeader.appendChild(timeElement);
-                newMessage.appendChild(fullTimeElement);
-                newMessage.appendChild(messageText);
-                newMessage.appendChild(messageIdElement);
-            
-                messagesContainer.prepend(newMessage);
-            });                
+            if (PrivateChatStatus) {
+                messages.forEach(message => {
+                    processMessage(message);
+                });
+            } else {
+                messages.forEach(message => {
+                    processMessage(message);
+                });
+            }        
 
             currentOffset += messages.length;
             document.getElementById("current-offset").value = currentOffset;
@@ -415,6 +383,9 @@ function loadMoreMessages(PrivateChatStatus, userId, partnerId) {
         })
         .catch(error => {
             console.error("Ошибка при загрузке сообщений:", error);
+        })
+        .finally(() => {
+            isLoading = false; 
         });
 }
 
@@ -465,7 +436,10 @@ function sendMessage() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    renderMessages(messages);
+    if (window.PrivateChatStatus === false) {
+        renderMessages(messages);
+    };
+
     getUserProfileList();
 
     wait(300).then(() => {
@@ -474,19 +448,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     messageInput.value = "";
 
-    lastHoveredMessage = null;
+    setLastHoveredMessage(null);
 
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
+    
     messagesContainer.addEventListener("scroll", function () {
         if (messageControlPanel.style.display === 'block') {
             messageControlPanel.style.display = 'none';
         }
+
+        if (messagesContainer.childElementCount === 0) {
+            return;
+        }
     
-        if (messagesContainer.scrollTop === 0) { 
+        if (messagesContainer.scrollTop === 0 && isLoading === false) { 
             const userId = localStorage.getItem("user_id");
             const chatPartnerId = localStorage.getItem("partner_id");
+            
             loadMoreMessages(PrivateChatStatus, userId, chatPartnerId);
+            
             let lastHoveredMessage = null;
             wait(300).then(getMessagesDiv);
         }
@@ -604,10 +584,12 @@ document.addEventListener("DOMContentLoaded", function () {
 export {
     wait,
     getMessagesDiv,
-    getLastHoveredMessage,
     scrollToMessage,
     renderMessages,
     spawnMessage,
     loadMoreMessages,
-    openPrivateChat
+    openPrivateChat,
+    getLastHoveredMessage,
+    setLastHoveredMessage,
+    createMessageElement,
 };
