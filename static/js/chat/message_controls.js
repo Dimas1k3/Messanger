@@ -301,18 +301,27 @@ function handleDeleteClick() {
             messageInput.value = "";
         }
 
+        let ChatStatus;
+
+        if (window.PrivateChatStatus === true) {
+            ChatStatus = "private_messages";
+        } else {
+            ChatStatus = "global_chat";
+        }
+
         if (message) {
             fetch("/delete-message-global-chat", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ nickname, token, text, messageId }),
+                body: JSON.stringify({ nickname, token, text, messageId, ChatStatus }),
             })
                 .then((response) => {
                     if (response.ok) {
                         console.info("Message deleted successfully");
-
+                        
+                        let lastHoveredMessage = getLastHoveredMessage();
                         const messageElement = lastHoveredMessage;
                         if (messageElement) {
                             messageElement.remove();

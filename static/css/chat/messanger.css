@@ -32,6 +32,13 @@
     z-index: 9999;
 }
 
+#search-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
 #searchInput {
     padding: 8px;
     border: 1px solid #ccc;
@@ -53,6 +60,27 @@
     background: #f9f9f9;
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+#prevBtn,
+#nextBtn {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #ffffff;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    margin-right: 10px;
+    height: 40%;
+}
+
+#prevBtn:hover,
+#nextBtn:hover {
+    background: #f0f0f0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 #userList-container {

@@ -104,6 +104,7 @@ function getUserProfileList() {
                             userProfile.style.display = 'none';
                             console.log("Клик по кнопке, вызываем openPrivateChat");
                             openPrivateChat(currentUserId, userId);
+                            window.partnerId = userId;
                         }, { once: true });
                     } else {
                         let existingButton = userProfile.querySelector("#send-message-btn");

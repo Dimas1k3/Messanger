@@ -350,6 +350,7 @@ def delete_user_message():
     token = data.get("token")
     text = data.get('text')
     message_id = data.get("messageId")
+    chat_status = data.get("ChatStatus")
 
     if not token:
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
@@ -366,12 +367,13 @@ def delete_user_message():
     if not text:
         return jsonify({"success": False, "error": "Сообщение пустое"}), 400
     
-    delete_message_from_db(user_id, text, message_id)
+    delete_message_from_db(user_id, text, message_id, chat_status)
+
     return jsonify({'success': True}), 200
 
 @app.route("/verify-edit-message-global-chat", methods=["POST"])
 def verify_edit_user_message():
-    data = request.get_json()
+    data = request.get_json() 
     token = data.get("token")
     message = data.get("messageText")
     time = data.get("time")
@@ -460,11 +462,12 @@ def reply_to_message():
                     "time": showTime, 'repliedMessage': repliedMessage, "fullTime": time, 
                     "replyTo": repliedMessageNickname,"messageId": message_id })
 
-@app.route("/find-message-global-chat", methods=["POST"])
+@app.route("/find-message-chat", methods=["POST"])
 def find_message_global_chat():
     data = request.get_json()
     token = data.get("token")
     message_to_find = data.get("messageToFind")
+    chat_status = data.get("PrivateChatStatus")
 
     if not token:
         return jsonify({"success": False, "message": "Токен отсутствует"}), 400
@@ -472,12 +475,12 @@ def find_message_global_chat():
     if not message_to_find:
         return jsonify({"success": False, "message": "Сообщение отсутствует"}), 400
 
-    message_id = find_message_id_by_text(message_to_find)
+    message_id_list = find_message_id_by_text(message_to_find, chat_status)
 
-    if message_id == None:
+    if len(message_id_list) == 0:
         return jsonify({"success": False, "message": "Ничего не найдено"}), 400
     
-    return jsonify({"success": True, "message_id": message_id,})
+    return jsonify({"success": True, "message_id_list": message_id_list,})
 
 @app.route("/load-private-chat", methods=["POST"])
 def load_private_chat():

@@ -15,12 +15,12 @@
     <!-- <div id="server-scroller"></div> -->
     
     <div id="chat-header">
-        <!-- <svg id="pin-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M4.146 2.146a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1 .146.35V8l4 4v1h-3v2h-2v-2H3v-1l4-4V4l-1.5-1.5a.5.5 0 0 1 0-.708zM11.5 2a.5.5 0 0 1 .5.5V4h2a.5.5 0 0 1 0 1h-2v1.5a.5.5 0 0 1-1 0V5H8.5a.5.5 0 0 1 0-1h2V2.5a.5.5 0 0 1 .5-.5z"/>
-        </svg> -->
-
-        <input type="text" id="searchInput" placeholder="Поиск сообщений..." autocomplete="off" />
-    </div>
+        <div id="search-controls">
+            <button id="prevBtn" style="display: none;" title="Предыдущее совпадение">↑</button>
+            <button id="nextBtn" style="display: none;" title="Следующее совпадение">↓</button>
+            <input type="text" id="searchInput" placeholder="Поиск сообщений..." autocomplete="off" />
+        </div>
+    </div>    
     
     <div id="messages-container" style="overflow-y: scroll;">  
         <div id="message-control" style="display: none;">
