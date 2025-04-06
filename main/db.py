@@ -353,22 +353,16 @@ def get_status_edited_or_not(message_id, private_chat_status):
     # print(row)
     return row[0]
 
-def delete_message_from_db(user_id, message, message_id):
+def delete_message_from_db(user_id, message, message_id, chat_status):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
+    table_name = chat_status
     
-    print(user_id, message, message_id)
     cursor.execute(
-        'DELETE FROM global_chat WHERE sender_id = ? AND message = ? AND id = ?',
-        (user_id, message, message_id)
+        f"DELETE FROM {table_name} WHERE sender_id = {user_id} AND message = '{message}' AND id = {message_id}"
     )
-    
-    conn.commit()
-    
-    cursor.execute('SELECT * FROM global_chat WHERE sender_id = ?', (user_id,)) 
-    row = cursor.fetchall()
-    print(row)
 
+    conn.commit()
     conn.close()
 
 def get_message_id(user_id, time, message):
@@ -455,13 +449,23 @@ def get_message_text(message_id):
 
     return message_text
 
-def find_message_id_by_text(message_to_find):
+def find_message_id_by_text(message_to_find, chat_status):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 
-    cursor.execute('SELECT id FROM global_chat where message = ?', (message_to_find,))
-    message_id = cursor.fetchone() 
+    if chat_status == False:
+        table = 'global_chat'
+    else:
+        table = 'private_messages'
+
+    cursor.execute(f'SELECT id FROM {table} where message = ?', (message_to_find,))
+    response = cursor.fetchall() 
+    meesage_id_list = []
+
+    for message in response:
+        meesage_id_list.append(message[0])
 
     conn.close()
 
-    return message_id
+    print(meesage_id_list)
+    return meesage_id_list

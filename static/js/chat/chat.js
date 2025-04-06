@@ -17,18 +17,45 @@ const messageControlPanel = document.getElementById("message-control")
 let lastHoveredMessage = null;
 
 function scrollToMessage(messageId) {
-    let messages = document.querySelectorAll(".message");
-    const messagesContainer = document.getElementById("messages-container")
+    const messagesContainer = document.getElementById("messages-container");
 
-    messages.forEach(msg => {
-        let idElement = msg.querySelector(".message-id"); 
-        if (idElement && idElement.textContent.trim() === messageId.toString()) {
-            msg.scrollIntoView({ behavior: "smooth", block: "center" }); 
-            msg.style.backgroundColor = '#e0e0e0';
-        } else { 
-            // скролл при динамической прогрузке
+    const tryScroll = () => {
+        const messages = document.querySelectorAll(".message");
+        let found = false;
+
+        messages.forEach(msg => {
+            const idElement = msg.querySelector(".message-id");
+            if (idElement && idElement.textContent.trim() === messageId.toString()) {
+                found = true;
+
+                const containerTop = messagesContainer.getBoundingClientRect().top;
+                const msgTop = msg.getBoundingClientRect().top;
+                const offset = msgTop - containerTop - messagesContainer.clientHeight / 2;
+
+                messagesContainer.scrollTop += offset;
+
+                msg.style.backgroundColor = '#e0e0e0';
+                setTimeout(() => {
+                    msg.style.backgroundColor = '';
+                }, 1000);
+            }
+        });
+
+        return found;
+    };
+
+    if (tryScroll()) return;
+
+    const interval = setInterval(() => {
+        messagesContainer.scrollTop -= 200; 
+        if (tryScroll()) {
+            clearInterval(interval);
         }
-    });
+
+        if (messagesContainer.scrollTop <= 0) {
+            clearInterval(interval);
+        }
+    }, 200);
 }
 
 function getMessagesDiv() {
@@ -539,25 +566,50 @@ document.addEventListener("DOMContentLoaded", function () {
             const token = localStorage.getItem("session_token");
             const chatHeader = document.getElementById("chat-header")
     
-            fetch('/find-message-global-chat', {
+            fetch('/find-message-chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ token, messageToFind }),
+                body: JSON.stringify({ token, messageToFind, PrivateChatStatus }),
             })
             .then(response => {
                 if (!response.ok) { 
                     return response.json().then(err => { throw new Error(err.message); });
                 }
+
+                console.info(1);
                 return response.json();
             })
             .then(data => {
-                console.info("Сообщение найдено:", data.message_id);
-                scrollToMessage(data.message_id)
+                console.info(2);
+                console.log("data:", data);
+                
+                let foundMessages = data.message_id_list;
+                let currentIndex = 0;
+                console.info(3);
+
+                document.getElementById("prevBtn").style.display = "block";
+                document.getElementById("nextBtn").style.display = "block";
+                console.info(4);
+
+                scrollToMessage(foundMessages[currentIndex]);
+            
                 const errorMessage = document.querySelector("#chat-header span");
-                errorMessage.remove();
-            })            
+                if (errorMessage) errorMessage.remove();
+
+                document.getElementById("prevBtn").addEventListener("click", () => {
+                    if (!foundMessages.length) return;
+                    currentIndex = (currentIndex - 1 + foundMessages.length) % foundMessages.length;
+                    scrollToMessage(foundMessages[currentIndex]);
+                });
+                
+                document.getElementById("nextBtn").addEventListener("click", () => {
+                    if (!foundMessages.length) return;
+                    currentIndex = (currentIndex + 1) % foundMessages.length;
+                    scrollToMessage(foundMessages[currentIndex]);
+                });
+            })          
             .catch(error => {
                 const errorMessage = document.querySelector("#chat-header span");
                 
