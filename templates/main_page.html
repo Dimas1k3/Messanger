@@ -15,10 +15,15 @@
     <!-- <div id="server-scroller"></div> -->
     
     <div id="chat-header">
+        <span id="error-message" style="display: none; color: red;">Ничего не найдено</span>
+        
         <div id="search-controls">
             <button id="prevBtn" style="display: none;" title="Предыдущее совпадение">↑</button>
             <button id="nextBtn" style="display: none;" title="Следующее совпадение">↓</button>
+            
             <input type="text" id="searchInput" placeholder="Поиск сообщений..." autocomplete="off" />
+            
+            <div id="msgCounter" style="display: none"> </div>
         </div>
     </div>    
     
@@ -54,6 +59,9 @@
     <div id="edit-container" style="display: none;">esc для отмены • enter чтобы сохранить</div>
     
     <div id="input-container">
+        <input type="file" id="image-input" accept="image/*" style="display: none;">
+        <button id="image-button">📷</button>
+        
         <textarea id="message-input" placeholder="Введите сообщение..." autocomplete="off" 
         style="resize: none; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: normal; color: black;">
         </textarea>

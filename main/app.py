@@ -6,7 +6,7 @@ from datetime import datetime
 from handlers import (
     validate_username, validate_password, validate_email, 
     hash_password, send_verification_code, parse_html_text,
-    process_messages
+    process_messages, save_image_url_discord
 )
 
 from db import (
@@ -17,10 +17,11 @@ from db import (
     render_messages, delete_message_from_db, get_message_id, 
     edit_new_user_message, get_user_id_from_message,
     add_message_with_reply_to_db, get_user_id_by_message_id,
-    get_status_edited_or_not, find_message_id_by_text,
+    get_status_edited_or_not, find_messages_id_by_text,
     delete_expired_tokens, get_all_nicknames,
     verify_session_token_by_id, render_messages_private_chat,
-    add_private_message_to_db, get_private_message_id
+    add_private_message_to_db, get_private_message_id,
+    add_global_url_to_db, add_private_url_to_db
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -314,7 +315,11 @@ def process_user_message():
     message_id = get_message_id(user_id, time, user_message)
     showTime = time[:-3] 
     
-    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime, "fullTime": time, "messageId": message_id })
+    return jsonify({
+    "success": True, "nickname": nickname,
+    "message": user_message, "time": showTime, 
+    "fullTime": time, "messageId": message_id 
+    })
 
 @app.route("/private_user_message", methods=["POST"])
 def process_private_user_message():    
@@ -341,7 +346,11 @@ def process_private_user_message():
     message_id = get_private_message_id(user_id, chat_partner_id, user_message, time)
     showTime = time[:-3] 
     
-    return jsonify({"success": True, "nickname": nickname, "message": user_message, "time": showTime, "fullTime": time, "messageId": message_id })
+    return jsonify({
+    "success": True, "nickname": nickname, 
+    "message": user_message, "time": showTime, 
+    "fullTime": time, "messageId": message_id 
+    })
 
 @app.route("/delete-message-global-chat", methods=["DELETE"])
 def delete_user_message():
@@ -458,9 +467,12 @@ def reply_to_message():
     nickname = get_user_nickname(user[1])
     showTime = time[:-3]
 
-    return jsonify({"success": True, "nickname": nickname, "text": answerMessage, 
-                    "time": showTime, 'repliedMessage': repliedMessage, "fullTime": time, 
-                    "replyTo": repliedMessageNickname,"messageId": message_id })
+    return jsonify({
+    "success": True, "nickname": nickname,
+    "text": answerMessage, "time": showTime,
+    "repliedMessage": repliedMessage, "fullTime": time,
+    "replyTo": repliedMessageNickname, "messageId": message_id
+    })
 
 @app.route("/find-message-chat", methods=["POST"])
 def find_message_global_chat():
@@ -475,11 +487,12 @@ def find_message_global_chat():
     if not message_to_find:
         return jsonify({"success": False, "message": "Сообщение отсутствует"}), 400
 
-    message_id_list = find_message_id_by_text(message_to_find, chat_status)
+    message_id_list = find_messages_id_by_text(message_to_find, chat_status)
 
     if len(message_id_list) == 0:
         return jsonify({"success": False, "message": "Ничего не найдено"}), 400
     
+    print(message_id_list)
     return jsonify({"success": True, "message_id_list": message_id_list,})
 
 @app.route("/load-private-chat", methods=["POST"])
@@ -503,6 +516,48 @@ def load_private_chat():
     processed_messages = process_messages(messages, private_chat_status=True)
     print(processed_messages[0])
     return jsonify({"success": True, "messages": processed_messages})
+
+@app.route("/upload-image", methods=["POST"])
+def upload_image():
+    image = request.files['image']
+    token = request.form.get("token")
+    private_chat_status = request.form.get("chatStatus") == "true"
+    time = datetime.now().strftime(("%Y-%m-%d %H:%M:%S") )
+    
+    if not token:
+        return jsonify({"success": False, "message": "Токен отсутствует"}), 400
+    
+    user = verify_session_token(token)
+    if user[0] == False:
+        return jsonify({"success": False, "message": "Токен невалидный"}), 400
+    user_id = user[1]
+
+    # print(status)
+
+    if image.filename == '':
+        return jsonify({"error": "Имя файла пустое"}), 400
+    
+    response = save_image_url_discord(image)
+
+    if response[0] == False:
+        return jsonify({"error": response[1]}), response[2]
+    
+    # print(response)
+    print(private_chat_status)
+
+    if private_chat_status == False:
+        add_global_url_to_db(user_id, response, time)
+    else:
+        chat_partner_id = request.form.get("ChatPartnerId")
+        add_private_url_to_db(user_id, chat_partner_id, response, time)
+    
+    showTime = time[:-3] 
+
+    return jsonify({
+    "success": True, "url": response,  
+    "time": showTime, "fullTime": time,  
+    "userId": user_id, "chatStatus": private_chat_status  
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

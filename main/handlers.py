@@ -3,9 +3,10 @@ import smtplib
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import requests
 
 from data import banned_words, numbers, login_symbols, password_symbols, common_weak_passwords
-from data import sender_email, sender_password, smtp_port, smtp_server
+from data import sender_email, sender_password, smtp_port, smtp_server, bot_token, channel_id
 
 from db import (
     get_status_edited_or_not, get_user_id_by_message_id, get_user_nickname
@@ -159,3 +160,27 @@ def process_messages(messages, private_chat_status):
 
     # print(data_as_lists)
     return data_as_lists
+
+def save_image_url_discord(image):
+    url = f"https://discord.com/api/v10/channels/{channel_id}/messages"
+    headers = {
+        "Authorization": f"Bot {bot_token}"
+    }
+
+    files = {
+        "file": (image.filename, image.stream, image.mimetype)
+    }
+
+    response = requests.post(url, headers=headers, files=files)
+
+    if response.status_code != 200:
+        print(response.status_code, response.text)
+        return False, 'Ошибка загрузки в Discord', 500
+
+    data = response.json()
+    attachments = data.get("attachments", [])
+    
+    if not attachments:
+        return False, 'Нет вложений в ответе', 500
+
+    return attachments[0]["url"]

@@ -269,6 +269,30 @@ def add_private_message_to_db(user_id, chat_partner_id, user_message, time):
     conn.commit()
     conn.close()
 
+def add_global_url_to_db(user_id, message_url, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO global_chat (sender_id, message, sent_at)
+        VALUES (?, ?, ?)
+    ''', (user_id, message_url, time))
+
+    conn.commit()
+    conn.close()
+
+def add_private_url_to_db(user_id, chat_partner_id, message_url, time):
+    conn = sqlite3.connect('messanger.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO private_messages (sender_id, receiver_id, message, sent_at)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, chat_partner_id, message_url, time))
+
+    conn.commit()
+    conn.close()
+
 def render_messages(offset, limit):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
@@ -449,7 +473,7 @@ def get_message_text(message_id):
 
     return message_text
 
-def find_message_id_by_text(message_to_find, chat_status):
+def find_messages_id_by_text(message_to_find, chat_status):
     conn = sqlite3.connect('messanger.db')
     cursor = conn.cursor()
 

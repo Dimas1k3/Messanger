@@ -19,43 +19,38 @@ let lastHoveredMessage = null;
 function scrollToMessage(messageId) {
     const messagesContainer = document.getElementById("messages-container");
 
-    const tryScroll = () => {
-        const messages = document.querySelectorAll(".message");
-        let found = false;
+    if (messagesContainer.scrollTop === 0) return false;
 
-        messages.forEach(msg => {
-            const idElement = msg.querySelector(".message-id");
-            if (idElement && idElement.textContent.trim() === messageId.toString()) {
-                found = true;
+    const messages = document.querySelectorAll(".message");
 
-                const containerTop = messagesContainer.getBoundingClientRect().top;
-                const msgTop = msg.getBoundingClientRect().top;
-                const offset = msgTop - containerTop - messagesContainer.clientHeight / 2;
+    for (let msg of messages) {
+        const idElement = msg.querySelector(".message-id");
 
-                messagesContainer.scrollTop += offset;
+        if (idElement && idElement.textContent.trim() === messageId.toString()) {
+            const containerTop = messagesContainer.getBoundingClientRect().top;
+            const msgTop = msg.getBoundingClientRect().top;
+            const offset = msgTop - containerTop - messagesContainer.clientHeight / 2;
 
-                msg.style.backgroundColor = '#e0e0e0';
-                setTimeout(() => {
-                    msg.style.backgroundColor = '';
-                }, 1000);
-            }
-        });
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollTop + offset,
+                behavior: "smooth"
+            });
 
-        return found;
-    };
+            msg.style.backgroundColor = '#e0e0e0';
+            setTimeout(() => {
+                msg.style.backgroundColor = '';
+            }, 1000);
 
-    if (tryScroll()) return;
-
-    const interval = setInterval(() => {
-        messagesContainer.scrollTop -= 200; 
-        if (tryScroll()) {
-            clearInterval(interval);
+            return true;
         }
+    }
 
-        if (messagesContainer.scrollTop <= 0) {
-            clearInterval(interval);
-        }
-    }, 200);
+    messagesContainer.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    return false;
 }
 
 function getMessagesDiv() {
@@ -578,48 +573,77 @@ document.addEventListener("DOMContentLoaded", function () {
                     return response.json().then(err => { throw new Error(err.message); });
                 }
 
-                console.info(1);
                 return response.json();
             })
             .then(data => {
-                console.info(2);
                 console.log("data:", data);
                 
                 let foundMessages = data.message_id_list;
                 let currentIndex = 0;
-                console.info(3);
+
+                const prevBtn = document.getElementById("prevBtn");
+                const nextBtn = document.getElementById("nextBtn");
+
+                prevBtn.replaceWith(prevBtn.cloneNode(true));
+                nextBtn.replaceWith(nextBtn.cloneNode(true));
 
                 document.getElementById("prevBtn").style.display = "block";
                 document.getElementById("nextBtn").style.display = "block";
-                console.info(4);
+                const counter = document.getElementById("msgCounter");
+                counter.style.display = "block";
+                counter.textContent = `${currentIndex + 1} / ${foundMessages.length}`;
 
-                scrollToMessage(foundMessages[currentIndex]);
+                let attempts = 0;
+                let maxAttempts = 30;   
+                foundMessages.reverse();
+
+                const tryFindMessage = () => {
+                    console.info(foundMessages[currentIndex]);
+                    if (scrollToMessage(foundMessages[currentIndex]) === false && attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(tryFindMessage, 100); 
+                    }
+                };
+
+                attempts = 0;
+                tryFindMessage();
             
                 const errorMessage = document.querySelector("#chat-header span");
-                if (errorMessage) errorMessage.remove();
+                if (errorMessage.style.display = "block") {
+                    errorMessage.style.display = "none";
+                }
 
                 document.getElementById("prevBtn").addEventListener("click", () => {
                     if (!foundMessages.length) return;
-                    currentIndex = (currentIndex - 1 + foundMessages.length) % foundMessages.length;
-                    scrollToMessage(foundMessages[currentIndex]);
+                    
+                    currentIndex = (currentIndex + 1) % foundMessages.length;
+                    attempts = 0;
+                    tryFindMessage();
+                    counter.textContent = `${currentIndex + 1} / ${foundMessages.length}`;
                 });
                 
                 document.getElementById("nextBtn").addEventListener("click", () => {
                     if (!foundMessages.length) return;
-                    currentIndex = (currentIndex + 1) % foundMessages.length;
-                    scrollToMessage(foundMessages[currentIndex]);
+
+                    currentIndex = (currentIndex - 1 + foundMessages.length) % foundMessages.length;
+                    attempts = 0;
+                    tryFindMessage();
+                    counter.textContent = `${currentIndex + 1} / ${foundMessages.length}`;
                 });
             })          
             .catch(error => {
-                const errorMessage = document.querySelector("#chat-header span");
-                
-                if (error.message === "Ничего не найдено" && !errorMessage) {
-                    console.info("Сообщение не найдено");
-                    const errorMessage = document.createElement("span");
-                    errorMessage.textContent = "Ничего не найдено";
-                    errorMessage.style.color = "red";
-                    errorMessage.style.marginLeft = "620px";
-                    chatHeader.insertBefore(errorMessage, searchInput);
+                const errorMessage = document.querySelector("#error-message");
+                const prevBtn = document.getElementById("prevBtn");
+                const nextBtn = document.getElementById("nextBtn");
+                const counter = document.getElementById("msgCounter");
+
+                if (error.message === "Ничего не найдено") {
+                    errorMessage.style.display = "block";
+                    prevBtn.style.display = "none";
+                    nextBtn.style.display = "none";
+                    counter.style.display = "none";
+                } else {
+                    errorMessage.style.display = "none";
                 }
             });
         }   
@@ -628,8 +652,44 @@ document.addEventListener("DOMContentLoaded", function () {
             searchInput.blur();
             searchInput.value = "";
             const errorMessage = document.querySelector("#chat-header span");
-            errorMessage.remove();
+            errorMessage.style.display = "none";
         }
+    })
+    
+    const imageBtn = document.getElementById("image-button");
+    const imageInput = document.getElementById("image-input");
+    
+    imageBtn.addEventListener("click", () => {
+        imageInput.click(); 
+    });
+
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        const token = localStorage.getItem("session_token");
+
+        formData.append("image", file);
+        formData.append("token", token);
+        formData.append("chatStatus", PrivateChatStatus);
+
+        if (PrivateChatStatus === true) {
+            const chatPartnerId = localStorage.getItem("partner_id");
+            formData.append("ChatPartnerId", chatPartnerId);
+        }
+
+        fetch("/upload-image", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            const imageUrl = data.url;
+            const message = `[image]${imageUrl}[/image]`;
+            // sendImage(message); 
+            console.info(1);
+        });
     });
 });
 

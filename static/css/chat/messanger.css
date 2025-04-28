@@ -83,6 +83,16 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
+#error-message {
+    display: none;
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    margin-left: 630px;
+    white-space: nowrap;
+    align-self: center;
+}
+
 #userList-container {
     position: absolute;
     top: 0;
